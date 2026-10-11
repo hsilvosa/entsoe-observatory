@@ -7,6 +7,7 @@ wins; a real point wins over an A03-filled one. The native resolution is never c
 from __future__ import annotations
 
 import shutil
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -67,6 +68,7 @@ FROM (
     JOIN zone_tz z USING (zone_key)
     WHERE b.timestamp_utc >= coalesce(b.request_start_utc, b.timestamp_utc)
       AND b.timestamp_utc < coalesce(b.request_end_utc, b.timestamp_utc + INTERVAL 1 SECOND)
+      --AS_OF--
 )
 """
 
@@ -78,24 +80,69 @@ def _connect(threads: int) -> duckdb.DuckDBPyConnection:
     return con
 
 
+def _prepare_sql(as_of: datetime | None) -> str:
+    """Ranking SQL. With as_of, documents created after that instant are ignored."""
+    clause = ""
+    if as_of is not None:
+        stamp = as_of.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S")
+        clause = f"AND b.document_created_utc <= TIMESTAMPTZ '{stamp}+00'"
+    return PREPARE_SQL.replace("--AS_OF--", clause)
+
+
+def _bronze_patterns(
+    settings: Settings, dataset: str, zone_key: str, months: set[tuple[str, str]] | None
+) -> list[str]:
+    zone_dir = settings.layer_dir("bronze", dataset) / f"zone={zone_key}"
+    if months is None:
+        return [(zone_dir / "**" / "*.parquet").as_posix()]
+    return [
+        (zone_dir / f"year={y}" / f"month={m}" / "*.parquet").as_posix()
+        for y, m in sorted(months)
+        if (zone_dir / f"year={y}" / f"month={m}").exists()
+    ]
+
+
+def silver_as_of(
+    settings: Settings, dataset: str, zone: Zone, as_of: datetime
+) -> list[dict[str, Any]]:
+    """Silver view of one zone as it was known at `as_of` (late revisions are cut off)."""
+    con = _connect(settings.threads)
+    patterns = _bronze_patterns(settings, dataset, zone.key, None)
+    con.execute(
+        "CREATE OR REPLACE TEMP TABLE bronze_zone AS "
+        f"SELECT * FROM read_parquet({patterns!r}, hive_partitioning=false)"
+    )
+    con.execute("CREATE OR REPLACE TEMP TABLE zone_tz AS SELECT ? AS zone_key, ? AS tz",
+                [zone.key, zone.timezone])
+    con.execute(_prepare_sql(as_of))
+    cursor = con.execute(f"{SILVER_SELECT} ORDER BY timestamp_utc, resolution, sequence")
+    names = [d[0] for d in cursor.description]
+    return [dict(zip(names, row, strict=True)) for row in cursor.fetchall()]
+
+
 def build_silver_zone(
     con: duckdb.DuckDBPyConnection,
     settings: Settings,
     run_id: str,
     dataset: str,
     zone: Zone,
+    months: set[tuple[str, str]] | None = None,
 ) -> dict[str, Any]:
-    bronze_dir = settings.layer_dir("bronze", dataset) / f"zone={zone.key}"
-    pattern = (bronze_dir / "**" / "*.parquet").as_posix()
+    """Rebuild silver for a zone, or only for the given (year, month) partitions."""
+    patterns = _bronze_patterns(settings, dataset, zone.key, months)
+    if not patterns:
+        return {"dataset": dataset, "zone": zone.key, "bronze_rows": 0, "silver_rows": 0,
+                "out_of_window_dropped": 0, "duplicates_dropped": 0, "invalid_rows": 0,
+                "a03_filled_rows": 0}
     con.execute(
         "CREATE OR REPLACE TEMP TABLE bronze_zone AS "
-        f"SELECT * FROM read_parquet('{pattern}', hive_partitioning=false)"
+        f"SELECT * FROM read_parquet({patterns!r}, hive_partitioning=false)"
     )
     con.execute("CREATE OR REPLACE TEMP TABLE zone_tz AS SELECT ? AS zone_key, ? AS tz",
                 [zone.key, zone.timezone])
     bronze_rows = con.execute("SELECT count(*) FROM bronze_zone").fetchone()
     assert bronze_rows is not None
-    con.execute(PREPARE_SQL)
+    con.execute(_prepare_sql(None))
     stats = con.execute(
         """
         SELECT count(*) FILTER (WHERE rn = 1),
@@ -117,7 +164,14 @@ def build_silver_zone(
         f"TO '{tmp_dir.as_posix()}' (FORMAT parquet, COMPRESSION zstd, "
         "PARTITION_BY (year, month), OVERWRITE_OR_IGNORE)"
     )
-    swap_directory(tmp_dir, final_dir)
+    if months is None:
+        swap_directory(tmp_dir, final_dir)
+    else:
+        for year, month in sorted(months):
+            built = tmp_dir / f"year={year}" / f"month={month}"
+            if built.exists():
+                swap_directory(built, final_dir / f"year={year}" / f"month={month}")
+        shutil.rmtree(tmp_dir, ignore_errors=True)
     return {
         "dataset": dataset,
         "zone": zone.key,

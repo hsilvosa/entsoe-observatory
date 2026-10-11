@@ -1,0 +1,168 @@
+{
+  "$defs": {
+    "EventType": {
+      "enum": [
+        "demand",
+        "price",
+        "weather",
+        "fx"
+      ],
+      "title": "EventType",
+      "type": "string"
+    },
+    "QualityStatus": {
+      "enum": [
+        "valid",
+        "missing",
+        "estimated",
+        "invalid"
+      ],
+      "title": "QualityStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Versioned canonical event shared by producers and consumers of the gold layer.",
+  "properties": {
+    "area": {
+      "minLength": 1,
+      "title": "Area",
+      "type": "string"
+    },
+    "currency": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Z]{3}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Currency"
+    },
+    "dimension": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dimension"
+    },
+    "event_id": {
+      "format": "uuid",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "event_type": {
+      "$ref": "#/$defs/EventType"
+    },
+    "ingested_at": {
+      "format": "date-time",
+      "title": "Ingested At",
+      "type": "string"
+    },
+    "interval_end": {
+      "format": "date-time",
+      "title": "Interval End",
+      "type": "string"
+    },
+    "interval_start": {
+      "format": "date-time",
+      "title": "Interval Start",
+      "type": "string"
+    },
+    "is_a03_filled": {
+      "default": false,
+      "title": "Is A03 Filled",
+      "type": "boolean"
+    },
+    "payload_checksum": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Payload Checksum"
+    },
+    "published_at": {
+      "format": "date-time",
+      "title": "Published At",
+      "type": "string"
+    },
+    "quality_status": {
+      "$ref": "#/$defs/QualityStatus",
+      "default": "valid"
+    },
+    "resolution": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Resolution"
+    },
+    "revision": {
+      "default": 1,
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "schema_version": {
+      "default": "2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sequence": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Sequence",
+      "type": "integer"
+    },
+    "source": {
+      "minLength": 1,
+      "title": "Source",
+      "type": "string"
+    },
+    "unit": {
+      "title": "Unit",
+      "type": "string"
+    },
+    "value": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Value"
+    }
+  },
+  "required": [
+    "source",
+    "event_type",
+    "area",
+    "interval_start",
+    "interval_end",
+    "published_at",
+    "value",
+    "unit"
+  ],
+  "title": "GridEventV2",
+  "type": "object"
+}

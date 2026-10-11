@@ -478,7 +478,8 @@
    "eic_code": "10YPL-AREA-----S",
    "timezone": "Europe/Warsaw",
    "currencies": [
-    "PLN"
+    "PLN",
+    "EUR"
    ],
    "valid_from": null,
    "valid_to": null
@@ -502,7 +503,8 @@
    "eic_code": "10YRO-TEL------P",
    "timezone": "Europe/Bucharest",
    "currencies": [
-    "RON"
+    "RON",
+    "EUR"
    ],
    "valid_from": null,
    "valid_to": null

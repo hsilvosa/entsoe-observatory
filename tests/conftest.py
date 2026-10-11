@@ -35,7 +35,9 @@ def run_pipeline(tmp_path: Path) -> Callable[[Files], Pipeline]:
     def run(files: Files) -> Pipeline:
         raw = tmp_path / "raw"
         write_raw_dir(raw, files)
-        settings = Settings(STORAGE_ROOT=tmp_path / "storage", ENTSOE_RAW_DIR=raw, THREADS=2)  # type: ignore[call-arg]
+        settings = Settings(  # type: ignore[call-arg]
+            _env_file=None, STORAGE_ROOT=tmp_path / "storage", ENTSOE_RAW_DIR=raw, THREADS=2
+        )  # noqa: E501  # type: ignore[call-arg]
         run_id = new_run_id()
         build_landing_manifest(settings, run_id)
         build_bronze(settings, run_id)

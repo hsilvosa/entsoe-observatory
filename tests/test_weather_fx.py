@@ -20,7 +20,7 @@ TODAY = date(2026, 3, 20)
 
 
 def settings_for(tmp_path: Path) -> Settings:
-    return Settings(STORAGE_ROOT=tmp_path / "storage", THREADS=2)  # type: ignore[call-arg]
+    return Settings(_env_file=None, STORAGE_ROOT=tmp_path / "storage", THREADS=2)  # type: ignore[call-arg]
 
 
 def test_split_range_archive_then_forecast() -> None:

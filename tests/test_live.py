@@ -40,7 +40,7 @@ class FakeFetcher:
 
 
 def settings_for(tmp_path: Path) -> Settings:
-    return Settings(STORAGE_ROOT=tmp_path / "storage", THREADS=2)  # type: ignore[call-arg]
+    return Settings(_env_file=None, STORAGE_ROOT=tmp_path / "storage", THREADS=2)  # type: ignore[call-arg]
 
 
 def silver_rows(settings: Settings) -> list[tuple[float, int]]:

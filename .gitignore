@@ -1,0 +1,23 @@
+# Local-only working brief (holds local paths and preferences)
+docs/project-brief.md
+IDEA.md
+
+# Secrets and data
+.env
+.env.*
+!.env.example
+data/
+storage/
+*.parquet
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+dist/
+build/
+*.egg-info/

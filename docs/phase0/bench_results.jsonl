@@ -1,0 +1,6 @@
+{"engine": "duckdb", "wall_s": 3.19, "peak_rss_mb": 1361, "avg_cores_used": 2.51, "cpu_pct_of_16_threads": 15.7, "bronze_mb": 64.1, "files": 24, "rows": 1727832, "dedup_rows": 1727832}
+{"engine": "polars", "wall_s": 2.37, "peak_rss_mb": 1605, "avg_cores_used": 2.42, "cpu_pct_of_16_threads": 15.1, "bronze_mb": 63.6, "files": 24, "rows": 1727832, "dedup_rows": 1727832}
+{"engine": "spark", "wall_s": 21.39, "peak_rss_mb": 2125, "avg_cores_used": 3.92, "cpu_pct_of_16_threads": 24.5, "bronze_mb": 65.9, "files": 120, "rows": 1727832, "dedup_rows": 1727832, "work_s_excl_jvm_start": 15.66}
+{"engine": "duckdb", "wall_s": 3.2, "peak_rss_mb": 1352, "avg_cores_used": 2.17, "cpu_pct_of_16_threads": 13.6, "bronze_mb": 64.0, "files": 24, "rows": 1727832, "dedup_rows": 1727832}
+{"engine": "polars", "wall_s": 1.94, "peak_rss_mb": 1531, "avg_cores_used": 2.3, "cpu_pct_of_16_threads": 14.4, "bronze_mb": 63.6, "files": 24, "rows": 1727832, "dedup_rows": 1727832}
+{"engine": "spark", "wall_s": 20.04, "peak_rss_mb": 1872, "avg_cores_used": 4.3, "cpu_pct_of_16_threads": 26.9, "bronze_mb": 65.9, "files": 120, "rows": 1727832, "dedup_rows": 1727832, "work_s_excl_jvm_start": 15.23}

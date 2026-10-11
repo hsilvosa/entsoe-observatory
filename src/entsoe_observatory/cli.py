@@ -18,6 +18,7 @@ from .events import GridEventV2
 from .fx import pull_fx
 from .gold import ContractViolation, build_gold
 from .live import pull_live
+from .publish import S3Store, publish_huggingface, publish_r2
 from .reconcile import reconcile as run_reconcile
 from .settings import Settings
 from .silver import build_silver
@@ -178,3 +179,44 @@ def dashboard(
     settings = Settings()
     started = time.perf_counter()
     _echo("dashboard", build_dashboard(settings, out or settings.storage_root / "site"), started)
+
+
+@app.command("publish-r2")
+def publish_r2_command(
+    dry_run: Annotated[bool, typer.Option(help="Only show what would change.")] = False,
+    prune: Annotated[bool, typer.Option(help="Delete remote files that are gone locally.")] = False,
+) -> None:
+    """Sync gold, contracts and the dataset card to Cloudflare R2."""
+    settings = Settings()
+    started = time.perf_counter()
+    store = None if dry_run else S3Store(settings)
+    summary = publish_r2(settings, store or _DryStore(), dry_run=dry_run, prune=prune)  # type: ignore[arg-type]
+    _echo("publish-r2", summary, started)
+
+
+@app.command("publish-hf")
+def publish_hf_command(
+    dry_run: Annotated[bool, typer.Option(help="Only stage and count files.")] = False,
+) -> None:
+    """Upload gold, contracts and the dataset card to a Hugging Face dataset repository."""
+    started = time.perf_counter()
+    _echo("publish-hf", publish_huggingface(Settings(), dry_run=dry_run), started)
+
+
+@app.command()
+def card() -> None:
+    """Write the dataset card to STORAGE_ROOT/publish/README.md."""
+    from .dataset_card import build_card
+
+    settings = Settings()
+    target = settings.layer_dir("publish") / "README.md"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(build_card(settings), encoding="utf-8", newline="\n")
+    typer.echo(str(target))
+
+
+class _DryStore:
+    """Store used for dry runs: nothing is remote, so every file counts as new."""
+
+    def get_text(self, key: str) -> str | None:
+        return None

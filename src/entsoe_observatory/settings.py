@@ -19,6 +19,14 @@ class Settings(BaseSettings):
     entsoe_api_token: SecretStr | None = Field(default=None, validation_alias="ENTSOE_API_TOKEN")
     entsoe_env_file: Path | None = Field(default=None, validation_alias="ENTSOE_ENV_FILE")
     threads: int = Field(default=4, ge=1, validation_alias="THREADS")
+    r2_account_id: str | None = Field(default=None, validation_alias="R2_ACCOUNT_ID")
+    r2_bucket: str | None = Field(default=None, validation_alias="R2_BUCKET")
+    r2_access_key_id: SecretStr | None = Field(default=None, validation_alias="R2_ACCESS_KEY_ID")
+    r2_secret_access_key: SecretStr | None = Field(
+        default=None, validation_alias="R2_SECRET_ACCESS_KEY"
+    )
+    hf_token: SecretStr | None = Field(default=None, validation_alias="HF_TOKEN")
+    hf_repo_id: str = Field(default="hsilvosa/entsoe-observatory", validation_alias="HF_REPO_ID")
 
     def require_raw_dir(self) -> Path:
         if self.entsoe_raw_dir is None:

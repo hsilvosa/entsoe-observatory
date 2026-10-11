@@ -149,3 +149,29 @@ def test_fx_pull_is_idempotent_and_incremental(tmp_path: Path) -> None:
         ("PLN", "2026-03-04", 4.32),
         ("RON", "2026-03-02", 5.1),
     ]
+
+
+def test_rate_limit_stops_the_run_and_resume_skips_covered_zones(tmp_path: Path) -> None:
+    path = tmp_path / "points.json"
+    one = [{"name": "a", "latitude": 40.0, "longitude": -3.0, "weight": 1.0}]
+    path.write_text(json.dumps({"zones": {"ES": one, "PT": one, "FR": one}}))
+    calls: list[str] = []
+    limited = {"on": True}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(str(request.url.params["latitude"]))
+        if limited["on"] and len(calls) == 2:
+            return httpx.Response(429, json={"reason": "Hourly API request limit exceeded."})
+        return httpx.Response(200, json=payload([1.0, 2.0]))
+
+    client = WeatherClient(transport=httpx.MockTransport(handler), pause_s=0, sleep=lambda s: None)
+    settings = settings_for(tmp_path)
+    args = dict(start=date(2026, 3, 1), end=date(2026, 3, 1), today=TODAY, points_path=path)
+    first = pull_weather(settings, client, **args)  # type: ignore[arg-type]
+    assert [z["zone"] for z in first["zones"]] == ["ES"]
+    assert first["pending_zones"] == ["FR", "PT"]
+    limited["on"] = False
+    second = pull_weather(settings, client, skip_covered=True, **args)  # type: ignore[arg-type]
+    assert second["pending_zones"] == []
+    skipped = {z["zone"] for z in second["zones"] if z.get("skipped")}
+    assert skipped == {"ES"}

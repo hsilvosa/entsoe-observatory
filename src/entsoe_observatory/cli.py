@@ -91,6 +91,8 @@ def pull(
     )
     client.close()
     _echo("pull", {k: v for k, v in summary.items() if k != "pulls"}, started)
+    if summary["errors"]:
+        raise typer.Exit(code=1)
 
 
 @app.command()
@@ -98,6 +100,7 @@ def weather(
     zone: ZoneOption = None,
     start: Annotated[str | None, typer.Option(help="YYYY-MM-DD, default 7 days ago.")] = None,
     end: Annotated[str | None, typer.Option(help="YYYY-MM-DD, default today.")] = None,
+    resume: Annotated[bool, typer.Option(help="Skip zones that already span the range.")] = False,
 ) -> None:
     """Pull Open-Meteo weather for the zone points."""
     today = datetime.now(UTC).date()
@@ -106,10 +109,13 @@ def weather(
     client = WeatherClient()
     started = time.perf_counter()
     summary = pull_weather(
-        Settings(), client, start=begin, end=last, zones=zone, on_progress=typer.echo
+        Settings(), client, start=begin, end=last, zones=zone, skip_covered=resume,
+        on_progress=typer.echo,
     )
     client.close()
-    _echo("weather", {"rows": summary["rows"]}, started)
+    _echo("weather", {"rows": summary["rows"], "pending": summary["pending_zones"]}, started)
+    if summary["pending_zones"]:
+        raise typer.Exit(code=2)
 
 
 @app.command()

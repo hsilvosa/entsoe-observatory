@@ -73,12 +73,12 @@ span AS (
     SELECT zone_key, sequence, min(local_date) AS d0, max(local_date) AS d1 FROM s GROUP BY ALL
 ),
 days AS (
-    SELECT zone_key, sequence, CAST(unnest(generate_series(d0, d1, INTERVAL 1 DAY)) AS DATE)
-        AS local_date
+    SELECT zone_key, sequence, d0, d1,
+           CAST(unnest(generate_series(d0, d1, INTERVAL 1 DAY)) AS DATE) AS local_date
     FROM span
 ),
 joined AS (
-    SELECT d.zone_key, d.sequence, d.local_date, z.tz,
+    SELECT d.zone_key, d.sequence, d.local_date, d.d0, d.d1, z.tz,
            coalesce(c.covered_minutes, 0) AS covered_minutes,
            coalesce(c.slots_present, 0) AS slots_present,
            c.resolution_list
@@ -98,6 +98,9 @@ SELECT '{{dataset}}' AS dataset, zone_key, sequence, local_date, resolution_list
            ELSE 'complete'
        END AS status
 FROM measured
+-- The first and last local day of a series are partial by construction (the request window
+-- starts or ends mid-day for some zones); they are not reported as gaps.
+WHERE NOT (local_date IN (d0, d1) AND covered_minutes < expected_minutes * {COMPLETE_MIN})
 """
 
 CHECKS_SQL = """
@@ -164,6 +167,21 @@ FROM (
 UNION ALL
 -- freshness (warning)
 {freshness_sql}
+"""
+
+FX_COVERAGE_SQL = """
+CREATE OR REPLACE TEMP TABLE results AS
+-- fx coverage (warning): non-EUR price days without an ECB rate in the 5 days before
+SELECT 'fx_coverage' AS check_name, '{warning}' AS severity, 'day_ahead_prices' AS dataset,
+       zone_key, count(*) FILTER (WHERE rates = 0) AS failed_count, count(*) AS total_count,
+       coalesce(string_agg(DISTINCT currency, ',') FILTER (WHERE rates = 0), '') AS detail
+FROM (
+    SELECT d.zone_key, d.currency, d.local_date, count(f.rate_date) AS rates
+    FROM (SELECT DISTINCT zone_key, currency, local_date FROM s WHERE currency <> 'EUR') d
+    LEFT JOIN fx f ON f.currency = d.currency
+        AND f.rate_date BETWEEN d.local_date - 5 AND d.local_date AND f.is_valid
+    GROUP BY ALL
+) GROUP BY zone_key
 """
 
 PRICE_FRESHNESS = """
@@ -272,12 +290,20 @@ def run_checks(
                 freshness_sql=_freshness_sql(dataset, now),
             )
         )
-        con.execute(
+        insert = (
             "INSERT INTO all_results SELECT ?, CAST(? AS TIMESTAMPTZ), check_name, severity,"
             " dataset, zone_key, CASE WHEN severity = 'info' OR failed_count = 0 THEN 'pass'"
-            " ELSE 'fail' END, failed_count, total_count, detail FROM results",
-            [run_id, now.isoformat()],
+            " ELSE 'fail' END, failed_count, total_count, detail FROM results"
         )
+        con.execute(insert, [run_id, now.isoformat()])
+        fx_file = settings.layer_dir("silver", "fx_daily") / "fx_daily.parquet"
+        if dataset == PRICES and fx_file.exists():
+            con.execute(
+                "CREATE OR REPLACE TEMP VIEW fx AS "
+                f"SELECT * FROM read_parquet('{fx_file.as_posix()}')"
+            )
+            con.execute(FX_COVERAGE_SQL.format(warning=WARNING))
+            con.execute(insert, [run_id, now.isoformat()])
     results_path = (out_dir / "check_results.parquet").as_posix()
     completeness_path = (out_dir / "completeness_daily.parquet").as_posix()
     con.execute(

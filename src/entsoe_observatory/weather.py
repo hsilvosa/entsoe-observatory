@@ -39,6 +39,10 @@ DEFAULT_POINTS = Path(__file__).resolve().parents[2] / "configs" / "weather_poin
 DATASET = "weather"
 
 
+class WeatherRateLimitError(RuntimeError):
+    """Hourly or daily Open-Meteo limit reached; retrying now will not help."""
+
+
 @dataclass(frozen=True)
 class WeatherPoint:
     name: str
@@ -63,6 +67,30 @@ def split_range(start: date, end: date, today: date) -> list[tuple[str, date, da
     if end > boundary:
         pieces.append(("forecast", max(start, boundary + timedelta(days=1)), end))
     return pieces
+
+
+def _reason(response: httpx.Response) -> str:
+    try:
+        return str(response.json().get("reason", "unknown"))
+    except ValueError:
+        return "unknown"
+
+
+def _covered(settings: Settings, zone_key: str, start: date, end: date) -> bool:
+    """True when silver weather of the zone already spans [start, end] (resume support)."""
+    zone_dir = settings.layer_dir("silver", DATASET) / f"zone={zone_key}"
+    if not zone_dir.exists():
+        return False
+    con = duckdb.connect()
+    con.execute("SET TimeZone='UTC'")
+    pattern = (zone_dir / "**" / "*.parquet").as_posix()
+    row = con.execute(
+        f"SELECT min(timestamp_utc), max(timestamp_utc) "
+        f"FROM read_parquet('{pattern}', hive_partitioning=false)"
+    ).fetchone()
+    if not row or row[0] is None:
+        return False
+    return bool(row[0].date() <= start + timedelta(days=1) and row[1].date() >= end)
 
 
 class WeatherClient:
@@ -107,7 +135,13 @@ class WeatherClient:
                     ) from None
                 self._sleep(2**attempt)
                 continue
-            if response.status_code in {429, 500, 502, 503, 504} and attempt < self._max_retries:
+            if response.status_code == 429:
+                reason = _reason(response)
+                if "minutely" not in reason.lower() or attempt >= self._max_retries:
+                    raise WeatherRateLimitError(f"Open-Meteo rate limit: {reason}")
+                self._sleep(60.0)
+                continue
+            if response.status_code in {500, 502, 503, 504} and attempt < self._max_retries:
                 self._sleep(min(60.0, 2 ** (attempt + 1)))
                 continue
             if response.status_code >= 400:
@@ -236,6 +270,7 @@ def pull_weather(
     run_id: str | None = None,
     today: date | None = None,
     points_path: Path | None = None,
+    skip_covered: bool = False,
     on_progress: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
     run_id = run_id or new_run_id()
@@ -244,12 +279,25 @@ def pull_weather(
     con = _connect(settings.threads)
     ingested_at = datetime.now(UTC)
     results: list[dict[str, Any]] = []
+    pending: list[str] = []
     for zone_key in zones or sorted(all_points):
+        if pending:
+            pending.append(zone_key)
+            continue
+        if skip_covered and _covered(settings, zone_key, start, end):
+            results.append({"zone": zone_key, "rows": 0, "months": 0, "skipped": True})
+            continue
         points = all_points[zone_key]
         months: set[tuple[str, str]] = set()
         rows = 0
         for source, piece_start, piece_end in split_range(start, end, today):
-            payloads, digest, _ = client.fetch(points, source, piece_start, piece_end)
+            try:
+                payloads, digest, _ = client.fetch(points, source, piece_start, piece_end)
+            except WeatherRateLimitError as error:
+                pending.append(zone_key)
+                if on_progress:
+                    on_progress(f"weather/{zone_key}: STOPPED {error}")
+                break
             table = parse_payloads(
                 zone_key, points, payloads, source=source, sha256=digest, run_id=run_id,
                 ingested_at=ingested_at,
@@ -257,12 +305,14 @@ def pull_weather(
             merged = merge_into_bronze(settings, DATASET, zone_key, table)
             months.update((y, m) for y, m in merged["months"])
             rows += merged["rows"]
+        if zone_key in pending:
+            continue
         if months:
             build_weather_silver(con, settings, zone_key, months)
         results.append({"zone": zone_key, "rows": rows, "months": len(months)})
         if on_progress:
             on_progress(f"weather/{zone_key}: rows={rows}")
     summary = {"start": start.isoformat(), "end": end.isoformat(), "zones": results,
-               "rows": sum(r["rows"] for r in results)}
+               "rows": sum(r["rows"] for r in results), "pending_zones": pending}
     write_run_manifest(settings, run_id, "weather", summary)
     return summary

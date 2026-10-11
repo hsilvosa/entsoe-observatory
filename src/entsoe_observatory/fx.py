@@ -99,7 +99,7 @@ def pull_fx(
     bronze_path = settings.layer_dir("bronze", "fx") / "ecb_rates.parquet"
     existing: pa.Table | None = pq.read_table(bronze_path) if bronze_path.exists() else None
     if start is None:
-        start = date(2015, 1, 1)
+        start = date(2014, 12, 20)  # a few days before the first price day
         if existing is not None and existing.num_rows:
             latest = max(d for d in existing["rate_date"].to_pylist())
             start = latest - timedelta(days=10)  # lookback for ECB corrections

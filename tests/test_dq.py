@@ -40,16 +40,23 @@ def test_dst_aware_completeness_flags_only_real_gaps(run_pipeline: Run) -> None:
     full = load_doc("2025-10-25T22:00Z", "2025-10-26T23:00Z", {1: 10.0, 50: 12.0})
     # 2025-10-27: curve A01 with only 40 points published -> 40 of 96 slots.
     gap = load_doc("2025-10-26T23:00Z", "2025-10-27T23:00Z", {i: 11.0 for i in range(1, 41)}, "A01")
-    p = run_pipeline([(LOAD, "ES", "a.xml", full), (LOAD, "ES", "b.xml", gap)])
+    after = load_doc("2025-10-27T23:00Z", "2025-10-28T23:00Z", {1: 13.0})
+    p = run_pipeline(
+        [(LOAD, "ES", "a.xml", full), (LOAD, "ES", "b.xml", gap), (LOAD, "ES", "c.xml", after)]
+    )
     report = run_checks(p.settings, now=NOW, fail_on_blocking=False)
     row = find(results(report.path), "completeness")
-    assert (row["failed_count"], row["total_count"]) == (1, 2)
+    assert (row["failed_count"], row["total_count"]) == (1, 3)
     assert "2025-10-27" in str(row["detail"])
     days = duckdb.sql(
         f"select local_date::varchar, expected_minutes, status from "
         f"read_parquet('{(report.path / 'completeness_daily.parquet').as_posix()}') order by 1"
     ).fetchall()
-    assert days == [("2025-10-26", 1500, "complete"), ("2025-10-27", 1440, "incomplete")]
+    assert days == [
+        ("2025-10-26", 1500, "complete"),
+        ("2025-10-27", 1440, "incomplete"),
+        ("2025-10-28", 1440, "complete"),
+    ]
 
 
 def test_unexpected_currency_is_a_blocking_failure(run_pipeline: Run) -> None:
@@ -106,3 +113,49 @@ def test_freshness_warns_when_data_is_old(run_pipeline: Run) -> None:
     assert find(results(stale.path), "freshness")["status"] == "fail"
     fresh = run_checks(p.settings, now=datetime(2025, 1, 2, 23, 30, tzinfo=UTC))
     assert find(results(fresh.path), "freshness")["status"] == "pass"
+
+
+def test_fx_coverage_flags_non_eur_days_without_a_rate(run_pipeline: Run) -> None:
+    period = PeriodSpec("2025-01-01T23:00Z", "2025-01-03T23:00Z", "PT60M", {1: 10.0})
+    doc = DocSpec(
+        [SeriesSpec([period], currency="PLN")], "2025-01-01T23:00Z", "2025-01-03T23:00Z"
+    )
+    p = run_pipeline([(PRICES, "PL", "a.xml", doc)])
+    fx_dir = p.settings.layer_dir("silver", "fx_daily")
+    fx_dir.mkdir(parents=True)
+    path = (fx_dir / "fx_daily.parquet").as_posix()
+    duckdb.sql(
+        "COPY (SELECT 'PLN' AS currency, DATE '2025-01-02' AS rate_date, 4.2 AS units_per_eur,"
+        f" true AS is_valid) TO '{path}' (FORMAT parquet)"
+    )
+    report = run_checks(p.settings, now=NOW)
+    row = find(results(report.path), "fx_coverage", "PL")
+    assert (row["failed_count"], row["total_count"]) == (0, 2)  # rate on 01-02 covers 01-02, 01-03
+    duckdb.sql(
+        "COPY (SELECT 'PLN' AS currency, DATE '2024-12-01' AS rate_date, 4.2 AS units_per_eur,"
+        f" true AS is_valid) TO '{path}' (FORMAT parquet)"
+    )
+    stale = run_checks(p.settings, now=NOW)
+    row = find(results(stale.path), "fx_coverage", "PL")
+    assert (row["failed_count"], row["total_count"]) == (2, 2)
+
+
+def test_partial_first_and_last_days_are_not_reported_as_gaps(run_pipeline: Run) -> None:
+    # Series starts and ends mid-day (a request window edge); only the full middle day counts.
+    doc = DocSpec(
+        [
+            SeriesSpec(
+                [
+                    PeriodSpec("2025-01-01T12:00Z", "2025-01-01T23:00Z", "PT60M", {1: 1.0}),
+                    PeriodSpec("2025-01-01T23:00Z", "2025-01-02T23:00Z", "PT60M", {1: 2.0}),
+                    PeriodSpec("2025-01-02T23:00Z", "2025-01-03T05:00Z", "PT60M", {1: 3.0}),
+                ]
+            )
+        ],
+        "2025-01-01T12:00Z",
+        "2025-01-03T05:00Z",
+    )
+    p = run_pipeline([(PRICES, "ES", "a.xml", doc)])
+    report = run_checks(p.settings, now=NOW)
+    row = find(results(report.path), "completeness")
+    assert (row["failed_count"], row["total_count"]) == (0, 1)

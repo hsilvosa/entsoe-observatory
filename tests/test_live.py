@@ -115,3 +115,13 @@ def test_inactive_zone_is_skipped(tmp_path: Path) -> None:
     fetcher = FakeFetcher()
     pull_live(settings_for(tmp_path), fetcher, zones=["DE_AT_LU"], now=NOW, run_id="r1")
     assert fetcher.calls == []
+
+
+def test_long_windows_are_split_below_one_year() -> None:
+    from entsoe_observatory.live import Window, chunk_window
+
+    window = Window(datetime(2024, 1, 1, tzinfo=UTC), datetime(2026, 1, 1, tzinfo=UTC))
+    chunks = chunk_window(window, 300)
+    assert chunks[0].start == window.start and chunks[-1].end == window.end
+    assert all((c.end - c.start).days <= 300 for c in chunks)
+    assert all(a.end == b.start for a, b in zip(chunks, chunks[1:], strict=False))

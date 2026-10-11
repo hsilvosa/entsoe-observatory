@@ -20,7 +20,7 @@ import duckdb
 import pyarrow as pa
 
 from .bronze import merge_into_bronze, new_run_id, write_run_manifest
-from .client import FetchResult
+from .client import EntsoeApiError, FetchResult
 from .parser import DATASETS, PRICES, parse_document
 from .settings import Settings
 from .silver import _connect, build_silver_zone
@@ -75,10 +75,22 @@ def plan_window(
     )
 
 
-def _is_active(zone: Zone, window: Window) -> bool:
-    if zone.valid_to and zone.valid_to <= window.start.date():
+def _is_active(zone: Zone, window: Window, now: datetime) -> bool:
+    """Closed zones (valid_to in the past) and not yet valid zones are not pulled."""
+    if zone.valid_to and zone.valid_to <= now.date():
         return False
     return not (zone.valid_from and zone.valid_from >= window.end.date())
+
+
+def chunk_window(window: Window, max_days: int = 300) -> list[Window]:
+    """ENTSO-E rejects windows over one year; split long catch-up windows."""
+    chunks: list[Window] = []
+    cursor = window.start
+    while cursor < window.end:
+        following = min(cursor + timedelta(days=max_days), window.end)
+        chunks.append(Window(cursor, following))
+        cursor = following
+    return chunks
 
 
 def _store_landing(
@@ -119,6 +131,49 @@ def _with_lineage(
     )
 
 
+def _pull_chunk(
+    settings: Settings,
+    fetcher: Fetcher,
+    con: duckdb.DuckDBPyConnection,
+    run_id: str,
+    dataset: str,
+    zone: Zone,
+    window: Window,
+    now: datetime,
+    on_progress: Callable[[str], None] | None,
+) -> dict[str, Any]:
+    base: dict[str, Any] = {
+        "dataset": dataset,
+        "zone": zone.key,
+        "window_start": window.start.isoformat(),
+        "window_end": window.end.isoformat(),
+        "rows": 0,
+    }
+    try:
+        result = fetcher.fetch(dataset, zone, window.start, window.end)
+    except EntsoeApiError as error:
+        # One failing zone must not stop the others; the run reports it at the end.
+        entry = {**base, "status": "error", "error": str(error)}
+        if on_progress:
+            on_progress(f"{dataset}/{zone.key}: ERROR {error}")
+        return entry
+    entry = {**base, "status": result.status, "sha256": result.sha256}
+    if result.status == "data":
+        path = _store_landing(settings, run_id, dataset, zone, window, result)
+        rel = path.relative_to(settings.layer_dir("landing")).as_posix()
+        table, _ = parse_document(path, dataset, zone.key, rel)
+        if table.num_rows:
+            table = _with_lineage(table, result.sha256, run_id, now)
+            merged = merge_into_bronze(settings, dataset, zone.key, table)
+            months = {(y, m) for y, m in merged["months"]}
+            silver = build_silver_zone(con, settings, run_id, dataset, zone, months)
+            entry.update(rows=merged["rows"], silver_rows=silver["silver_rows"])
+    if on_progress:
+        on_progress(f"{dataset}/{zone.key}: {entry['status']} rows={entry['rows']}")
+    return entry
+
+
+
 def pull_live(
     settings: Settings,
     fetcher: Fetcher,
@@ -147,36 +202,19 @@ def pull_live(
                 lookback_days=lookback_days,
                 initial_days=initial_days,
             )
-            if not _is_active(zone, window):
+            if not _is_active(zone, window, now):
                 continue
-            result = fetcher.fetch(dataset, zone, window.start, window.end)
-            entry: dict[str, Any] = {
-                "dataset": dataset,
-                "zone": zone.key,
-                "status": result.status,
-                "window_start": window.start.isoformat(),
-                "window_end": window.end.isoformat(),
-                "sha256": result.sha256,
-                "rows": 0,
-            }
-            if result.status == "data":
-                path = _store_landing(settings, run_id, dataset, zone, window, result)
-                rel = path.relative_to(settings.layer_dir("landing")).as_posix()
-                table, _ = parse_document(path, dataset, zone.key, rel)
-                if table.num_rows:
-                    table = _with_lineage(table, result.sha256, run_id, now)
-                    merged = merge_into_bronze(settings, dataset, zone.key, table)
-                    months = {(y, m) for y, m in merged["months"]}
-                    silver = build_silver_zone(con, settings, run_id, dataset, zone, months)
-                    entry.update(rows=merged["rows"], silver_rows=silver["silver_rows"])
-            results.append(entry)
-            if on_progress:
-                on_progress(f"{dataset}/{zone.key}: {entry['status']} rows={entry['rows']}")
+            for chunk in chunk_window(window):
+                entry = _pull_chunk(
+                    settings, fetcher, con, run_id, dataset, zone, chunk, now, on_progress
+                )
+                results.append(entry)
     summary = {
         "lookback_days": lookback_days,
         "pulls": results,
         "rows": sum(r["rows"] for r in results),
         "no_data": sum(r["status"] == "no_data" for r in results),
+        "errors": sum(r["status"] == "error" for r in results),
     }
     write_run_manifest(settings, run_id, "live", summary)
     return summary

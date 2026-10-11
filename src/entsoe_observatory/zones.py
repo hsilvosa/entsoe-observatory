@@ -20,6 +20,7 @@ class Zone(BaseModel):
     currencies: list[str]
     valid_from: date | None = None
     valid_to: date | None = None
+    sdac_sequence: int = 0  # price series that is the SDAC auction (AT and DE_LU publish two)
 
 
 def load_registry(path: Path | None = None) -> dict[str, Zone]:

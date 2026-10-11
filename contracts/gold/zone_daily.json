@@ -1,0 +1,102 @@
+{
+ "name": "zone_daily",
+ "version": "1.0.0",
+ "description": "Per zone and local day: price and load statistics with completeness. Peak is 08:00-20:00 local on weekdays.",
+ "grain": [
+  "zone_key",
+  "local_date"
+ ],
+ "partition_by": [],
+ "columns": [
+  {
+   "name": "zone_key",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "Bidding zone key from the zone registry."
+  },
+  {
+   "name": "local_date",
+   "type": "DATE",
+   "nullable": false,
+   "description": "Local day."
+  },
+  {
+   "name": "hours_in_day",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "23, 24 or 25 on DST days."
+  },
+  {
+   "name": "price_eur_min",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Minimum hourly price."
+  },
+  {
+   "name": "price_eur_max",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Maximum hourly price."
+  },
+  {
+   "name": "price_eur_mean",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Mean of hourly prices."
+  },
+  {
+   "name": "price_eur_peak_mean",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Mean hourly price in peak hours."
+  },
+  {
+   "name": "price_eur_offpeak_mean",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Mean hourly price in off-peak hours."
+  },
+  {
+   "name": "negative_price_hours",
+   "type": "INTEGER",
+   "nullable": true,
+   "description": "Hours with a negative price in EUR."
+  },
+  {
+   "name": "price_coverage",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Covered share of the day for prices, 0 to 1."
+  },
+  {
+   "name": "load_mw_min",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Minimum hourly load."
+  },
+  {
+   "name": "load_mw_max",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Maximum hourly load."
+  },
+  {
+   "name": "load_mw_mean",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Mean hourly load."
+  },
+  {
+   "name": "load_coverage",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Covered share of the day for load, 0 to 1."
+  }
+ ],
+ "constraints": [
+  "hours_in_day IN (23, 24, 25)",
+  "price_eur_min <= price_eur_max",
+  "price_coverage BETWEEN 0 AND 1.0001",
+  "load_coverage BETWEEN 0 AND 1.0001"
+ ]
+}

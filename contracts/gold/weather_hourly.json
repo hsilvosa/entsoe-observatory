@@ -1,0 +1,86 @@
+{
+ "name": "weather_hourly",
+ "version": "1.0.0",
+ "description": "Population-weighted hourly weather per zone, aligned to the UTC hourly grid.",
+ "grain": [
+  "zone_key",
+  "hour_utc"
+ ],
+ "partition_by": [
+  "zone_key",
+  "year"
+ ],
+ "columns": [
+  {
+   "name": "zone_key",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "Bidding zone key from the zone registry."
+  },
+  {
+   "name": "hour_utc",
+   "type": "TIMESTAMP WITH TIME ZONE",
+   "nullable": false,
+   "description": "Start of the UTC hour."
+  },
+  {
+   "name": "local_date",
+   "type": "DATE",
+   "nullable": false,
+   "description": "Local date of the hour."
+  },
+  {
+   "name": "temperature_2m",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Air temperature at 2 m, degC."
+  },
+  {
+   "name": "wind_speed_10m",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Wind speed at 10 m, m/s."
+  },
+  {
+   "name": "relative_humidity_2m",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Relative humidity, %."
+  },
+  {
+   "name": "shortwave_radiation",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Shortwave radiation, W/m2."
+  },
+  {
+   "name": "points_used",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Weather points with data in the hour."
+  },
+  {
+   "name": "points_total",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Weather points of the zone."
+  },
+  {
+   "name": "source",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "archive or forecast."
+  },
+  {
+   "name": "year",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Calendar year of the UTC timestamp (partition column)."
+  }
+ ],
+ "constraints": [
+  "points_used <= points_total",
+  "relative_humidity_2m IS NULL OR relative_humidity_2m BETWEEN 0 AND 100",
+  "wind_speed_10m IS NULL OR wind_speed_10m >= 0"
+ ]
+}

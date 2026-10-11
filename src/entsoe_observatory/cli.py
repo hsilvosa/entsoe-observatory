@@ -5,16 +5,20 @@ from __future__ import annotations
 import json
 import time
 from datetime import UTC, date, datetime, timedelta
+from pathlib import Path
 from typing import Annotated
 
 import typer
 
 from .bronze import build_bronze, build_landing_manifest, new_run_id
 from .client import EntsoeClient
+from .dashboard import build_dashboard
 from .dq import DataQualityError, run_checks
 from .events import GridEventV2
 from .fx import pull_fx
+from .gold import ContractViolation, build_gold
 from .live import pull_live
+from .publish import S3Store, publish_huggingface, publish_r2
 from .reconcile import reconcile as run_reconcile
 from .settings import Settings
 from .silver import build_silver
@@ -150,3 +154,69 @@ def dq(strict: Annotated[bool, typer.Option(help="Exit 1 on blocking failures.")
 def contracts() -> None:
     """Print the JSON schema of the event contract v2."""
     typer.echo(json.dumps(GridEventV2.model_json_schema(), indent=2, sort_keys=True))
+
+
+@app.command()
+def gold(
+    table: Annotated[list[str] | None, typer.Option("--table", help="Only this table.")] = None,
+) -> None:
+    """Build the gold tables from silver and enforce their contracts."""
+    started = time.perf_counter()
+    try:
+        summary = build_gold(Settings(), tables=table, on_progress=typer.echo)
+    except ContractViolation as error:
+        typer.echo(f"gold FAILED: {error}")
+        raise typer.Exit(code=1) from None
+    _echo("gold", {"rows": summary["rows"], "mb": round(summary["bytes"] / 2**20, 1),
+                   "skipped": summary["skipped"]}, started)
+
+
+@app.command()
+def dashboard(
+    out: Annotated[Path | None, typer.Option(help="Default: STORAGE_ROOT/site.")] = None,
+) -> None:
+    """Build the static dashboard from the gold tables."""
+    settings = Settings()
+    started = time.perf_counter()
+    _echo("dashboard", build_dashboard(settings, out or settings.storage_root / "site"), started)
+
+
+@app.command("publish-r2")
+def publish_r2_command(
+    dry_run: Annotated[bool, typer.Option(help="Only show what would change.")] = False,
+    prune: Annotated[bool, typer.Option(help="Delete remote files that are gone locally.")] = False,
+) -> None:
+    """Sync gold, contracts and the dataset card to Cloudflare R2."""
+    settings = Settings()
+    started = time.perf_counter()
+    store = None if dry_run else S3Store(settings)
+    summary = publish_r2(settings, store or _DryStore(), dry_run=dry_run, prune=prune)  # type: ignore[arg-type]
+    _echo("publish-r2", summary, started)
+
+
+@app.command("publish-hf")
+def publish_hf_command(
+    dry_run: Annotated[bool, typer.Option(help="Only stage and count files.")] = False,
+) -> None:
+    """Upload gold, contracts and the dataset card to a Hugging Face dataset repository."""
+    started = time.perf_counter()
+    _echo("publish-hf", publish_huggingface(Settings(), dry_run=dry_run), started)
+
+
+@app.command()
+def card() -> None:
+    """Write the dataset card to STORAGE_ROOT/publish/README.md."""
+    from .dataset_card import build_card
+
+    settings = Settings()
+    target = settings.layer_dir("publish") / "README.md"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(build_card(settings), encoding="utf-8", newline="\n")
+    typer.echo(str(target))
+
+
+class _DryStore:
+    """Store used for dry runs: nothing is remote, so every file counts as new."""
+
+    def get_text(self, key: str) -> str | None:
+        return None

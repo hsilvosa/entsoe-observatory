@@ -1,0 +1,79 @@
+{
+ "name": "load_hourly",
+ "version": "1.0.0",
+ "description": "Hourly harmonised actual load (mean MW).",
+ "grain": [
+  "zone_key",
+  "hour_utc"
+ ],
+ "partition_by": [
+  "zone_key",
+  "year"
+ ],
+ "columns": [
+  {
+   "name": "zone_key",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "Bidding zone key from the zone registry."
+  },
+  {
+   "name": "hour_utc",
+   "type": "TIMESTAMP WITH TIME ZONE",
+   "nullable": false,
+   "description": "Start of the UTC hour."
+  },
+  {
+   "name": "hour_local",
+   "type": "TIMESTAMP",
+   "nullable": false,
+   "description": "Hour start in the zone timezone."
+  },
+  {
+   "name": "local_date",
+   "type": "DATE",
+   "nullable": false,
+   "description": "Local date of the hour."
+  },
+  {
+   "name": "load_mw_mean",
+   "type": "DOUBLE",
+   "nullable": false,
+   "description": "Mean load in MW."
+  },
+  {
+   "name": "source_resolution",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "Finest source resolution present in the hour."
+  },
+  {
+   "name": "slots_present",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Source slots found in the hour."
+  },
+  {
+   "name": "slots_expected",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Source slots expected in the hour."
+  },
+  {
+   "name": "has_a03_filled",
+   "type": "BOOLEAN",
+   "nullable": false,
+   "description": "True when any slot was A03 filled."
+  },
+  {
+   "name": "year",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Calendar year of the UTC timestamp (partition column)."
+  }
+ ],
+ "constraints": [
+  "slots_present BETWEEN 1 AND slots_expected",
+  "load_mw_mean >= 0"
+ ]
+}

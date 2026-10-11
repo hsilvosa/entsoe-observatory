@@ -1,0 +1,67 @@
+{
+ "name": "cross_zone_spread_hourly",
+ "version": "1.0.0",
+ "description": "Hourly EUR price spread between neighbouring zones (spread = zone_a - zone_b), only for hours where both zones have a complete hourly price (all expected slots present).",
+ "grain": [
+  "zone_a",
+  "zone_b",
+  "hour_utc"
+ ],
+ "partition_by": [
+  "year"
+ ],
+ "columns": [
+  {
+   "name": "zone_a",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "First zone of the pair."
+  },
+  {
+   "name": "zone_b",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "Second zone of the pair."
+  },
+  {
+   "name": "hour_utc",
+   "type": "TIMESTAMP WITH TIME ZONE",
+   "nullable": false,
+   "description": "Start of the UTC hour."
+  },
+  {
+   "name": "price_eur_a",
+   "type": "DOUBLE",
+   "nullable": false,
+   "description": "Hourly mean price of zone_a in EUR/MWh."
+  },
+  {
+   "name": "price_eur_b",
+   "type": "DOUBLE",
+   "nullable": false,
+   "description": "Hourly mean price of zone_b in EUR/MWh."
+  },
+  {
+   "name": "spread_eur",
+   "type": "DOUBLE",
+   "nullable": false,
+   "description": "price_eur_a - price_eur_b."
+  },
+  {
+   "name": "abs_spread_eur",
+   "type": "DOUBLE",
+   "nullable": false,
+   "description": "Absolute spread."
+  },
+  {
+   "name": "year",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Calendar year of the UTC timestamp (partition column)."
+  }
+ ],
+ "constraints": [
+  "abs_spread_eur = abs(spread_eur)",
+  "zone_a <> zone_b"
+ ]
+}

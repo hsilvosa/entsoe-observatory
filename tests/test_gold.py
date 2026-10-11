@@ -206,3 +206,34 @@ def test_every_contract_is_consistent_with_the_code() -> None:
         assert set(contract.partition_by) <= set(names), name
         assert raw["version"].count(".") == 2
         assert all(c["description"] for c in contract.columns), name
+
+
+def test_dashboard_exports_aligned_json(scenario: Pipeline, tmp_path: Path) -> None:
+    from entsoe_observatory.dashboard import build_dashboard
+
+    out = tmp_path / "site"
+    summary = build_dashboard(scenario.settings, out)
+    assert summary["zones"] >= 3
+    for name in ("index.html", "app.js", "style.css"):
+        assert (out / name).exists()
+    zone = json.loads((out / "data" / "zones" / "ES.json").read_text(encoding="utf-8"))
+    lengths = {len(v) for k, v in zone.items() if isinstance(v, list)}
+    assert len(lengths) == 1  # columnar arrays stay aligned
+    assert zone["negative_hours"][zone["dates"].index("2025-03-30")] == 9
+    coverage = json.loads((out / "data" / "coverage.json").read_text(encoding="utf-8"))
+    assert {r["dataset"] for r in coverage} == {PRICES, LOAD}
+    spreads = json.loads((out / "data" / "spreads.json").read_text(encoding="utf-8"))
+    assert {"a": "ES", "b": "PT"}.items() <= next(
+        p for p in spreads["pairs"] if p["a"] == "ES" and p["b"] == "PT"
+    ).items()
+    heat = json.loads((out / "data" / "completeness_monthly.json").read_text(encoding="utf-8"))
+    assert heat["months"] and PRICES in heat["series"]
+
+
+def test_dashboard_requires_gold(tmp_path: Path) -> None:
+    from entsoe_observatory.dashboard import build_dashboard
+    from entsoe_observatory.settings import Settings
+
+    settings = Settings(STORAGE_ROOT=tmp_path)  # type: ignore[call-arg]
+    with pytest.raises(FileNotFoundError):
+        build_dashboard(settings, tmp_path / "site")

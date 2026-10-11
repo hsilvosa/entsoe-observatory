@@ -5,12 +5,14 @@ from __future__ import annotations
 import json
 import time
 from datetime import UTC, date, datetime, timedelta
+from pathlib import Path
 from typing import Annotated
 
 import typer
 
 from .bronze import build_bronze, build_landing_manifest, new_run_id
 from .client import EntsoeClient
+from .dashboard import build_dashboard
 from .dq import DataQualityError, run_checks
 from .events import GridEventV2
 from .fx import pull_fx
@@ -166,3 +168,13 @@ def gold(
         raise typer.Exit(code=1) from None
     _echo("gold", {"rows": summary["rows"], "mb": round(summary["bytes"] / 2**20, 1),
                    "skipped": summary["skipped"]}, started)
+
+
+@app.command()
+def dashboard(
+    out: Annotated[Path | None, typer.Option(help="Default: STORAGE_ROOT/site.")] = None,
+) -> None:
+    """Build the static dashboard from the gold tables."""
+    settings = Settings()
+    started = time.perf_counter()
+    _echo("dashboard", build_dashboard(settings, out or settings.storage_root / "site"), started)

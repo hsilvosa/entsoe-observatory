@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ENTSO-E observatory</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div>
+      <h1>ENTSO-E observatory</h1>
+      <p class="sub">Day-ahead prices and actual load for European bidding zones, with data quality.</p>
+    </div>
+    <p class="meta" id="meta"></p>
+  </header>
+  <nav id="tabs" role="tablist">
+    <button data-tab="coverage" class="active">Coverage</button>
+    <button data-tab="completeness">Completeness</button>
+    <button data-tab="explorer">Explorer</button>
+    <button data-tab="negative">Negative prices</button>
+    <button data-tab="spreads">Spreads</button>
+  </nav>
+  <main>
+    <section id="coverage"></section>
+    <section id="completeness" hidden></section>
+    <section id="explorer" hidden></section>
+    <section id="negative" hidden></section>
+    <section id="spreads" hidden></section>
+  </main>
+  <footer>Data: ENTSO-E Transparency Platform, Open-Meteo, ECB. Prices in EUR/MWh (converted with ECB rates where the publication currency differs).</footer>
+  <div id="tip" class="tip" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>

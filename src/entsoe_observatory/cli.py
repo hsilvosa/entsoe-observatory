@@ -4,14 +4,21 @@ from __future__ import annotations
 
 import json
 import time
+from datetime import UTC, date, datetime, timedelta
 from typing import Annotated
 
 import typer
 
 from .bronze import build_bronze, build_landing_manifest, new_run_id
+from .client import EntsoeClient
+from .dq import DataQualityError, run_checks
+from .events import GridEventV2
+from .fx import pull_fx
+from .live import pull_live
 from .reconcile import reconcile as run_reconcile
 from .settings import Settings
 from .silver import build_silver
+from .weather import WeatherClient, pull_weather
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -65,3 +72,75 @@ def backfill(zone: ZoneOption = None, dataset: DatasetOption = None) -> None:
 def reconcile() -> None:
     """Compare silver with the legacy parquet snapshot (LEGACY_PROCESSED_DIR)."""
     typer.echo(json.dumps(run_reconcile(Settings()), indent=1))
+
+
+@app.command()
+def pull(
+    zone: ZoneOption = None,
+    dataset: DatasetOption = None,
+    lookback_days: Annotated[int, typer.Option(help="Days re-read before the newest data.")] = 3,
+    initial_days: Annotated[int, typer.Option(help="Window for zones without data.")] = 7,
+) -> None:
+    """Incremental live pull from the ENTSO-E API (needs ENTSOE_API_TOKEN or ENTSOE_ENV_FILE)."""
+    settings = Settings()
+    client = EntsoeClient(settings.resolve_token())
+    started = time.perf_counter()
+    summary = pull_live(
+        settings, client, zones=zone, datasets=dataset, lookback_days=lookback_days,
+        initial_days=initial_days, on_progress=typer.echo,
+    )
+    client.close()
+    _echo("pull", {k: v for k, v in summary.items() if k != "pulls"}, started)
+
+
+@app.command()
+def weather(
+    zone: ZoneOption = None,
+    start: Annotated[str | None, typer.Option(help="YYYY-MM-DD, default 7 days ago.")] = None,
+    end: Annotated[str | None, typer.Option(help="YYYY-MM-DD, default today.")] = None,
+) -> None:
+    """Pull Open-Meteo weather for the zone points."""
+    today = datetime.now(UTC).date()
+    begin = date.fromisoformat(start) if start else today - timedelta(days=7)
+    last = date.fromisoformat(end) if end else today
+    client = WeatherClient()
+    started = time.perf_counter()
+    summary = pull_weather(
+        Settings(), client, start=begin, end=last, zones=zone, on_progress=typer.echo
+    )
+    client.close()
+    _echo("weather", {"rows": summary["rows"]}, started)
+
+
+@app.command()
+def fx() -> None:
+    """Pull ECB reference rates for the non-EUR currencies of the registry."""
+    started = time.perf_counter()
+    _echo("fx", pull_fx(Settings()), started)
+
+
+@app.command()
+def dq(strict: Annotated[bool, typer.Option(help="Exit 1 on blocking failures.")] = True) -> None:
+    """Run the data quality checks and store the results under dq/."""
+    started = time.perf_counter()
+    try:
+        report = run_checks(Settings(), fail_on_blocking=strict)
+    except DataQualityError as error:
+        typer.echo(f"dq FAILED: {error}")
+        raise typer.Exit(code=1) from None
+    _echo(
+        "dq",
+        {
+            "run_id": report.run_id,
+            "checks": report.checks_run,
+            "blocking_failures": len(report.blocking_failures),
+            "warning_failures": report.warning_failures,
+        },
+        started,
+    )
+
+
+@app.command()
+def contracts() -> None:
+    """Print the JSON schema of the event contract v2."""
+    typer.echo(json.dumps(GridEventV2.model_json_schema(), indent=2, sort_keys=True))

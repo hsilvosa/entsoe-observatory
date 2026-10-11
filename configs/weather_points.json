@@ -1,0 +1,744 @@
+{
+ "version": 1,
+ "note": "Approximate population-weighted points; ES points adapted from energy-predictor.",
+ "zones": {
+  "AL": [
+   {
+    "name": "tirana",
+    "latitude": 41.3275,
+    "longitude": 19.8187,
+    "weight": 1
+   }
+  ],
+  "AT": [
+   {
+    "name": "vienna",
+    "latitude": 48.2082,
+    "longitude": 16.3738,
+    "weight": 0.5
+   },
+   {
+    "name": "graz",
+    "latitude": 47.0707,
+    "longitude": 15.4395,
+    "weight": 0.25
+   },
+   {
+    "name": "salzburg",
+    "latitude": 47.8095,
+    "longitude": 13.055,
+    "weight": 0.25
+   }
+  ],
+  "BA": [
+   {
+    "name": "sarajevo",
+    "latitude": 43.8563,
+    "longitude": 18.4131,
+    "weight": 0.6
+   },
+   {
+    "name": "banja_luka",
+    "latitude": 44.7722,
+    "longitude": 17.191,
+    "weight": 0.4
+   }
+  ],
+  "BE": [
+   {
+    "name": "brussels",
+    "latitude": 50.8503,
+    "longitude": 4.3517,
+    "weight": 0.5
+   },
+   {
+    "name": "antwerp",
+    "latitude": 51.2194,
+    "longitude": 4.4025,
+    "weight": 0.3
+   },
+   {
+    "name": "liege",
+    "latitude": 50.6326,
+    "longitude": 5.5797,
+    "weight": 0.2
+   }
+  ],
+  "BG": [
+   {
+    "name": "sofia",
+    "latitude": 42.6977,
+    "longitude": 23.3219,
+    "weight": 0.6
+   },
+   {
+    "name": "plovdiv",
+    "latitude": 42.1354,
+    "longitude": 24.7453,
+    "weight": 0.2
+   },
+   {
+    "name": "varna",
+    "latitude": 43.2141,
+    "longitude": 27.9147,
+    "weight": 0.2
+   }
+  ],
+  "CH": [
+   {
+    "name": "zurich",
+    "latitude": 47.3769,
+    "longitude": 8.5417,
+    "weight": 0.5
+   },
+   {
+    "name": "geneva",
+    "latitude": 46.2044,
+    "longitude": 6.1432,
+    "weight": 0.25
+   },
+   {
+    "name": "bern",
+    "latitude": 46.948,
+    "longitude": 7.4474,
+    "weight": 0.25
+   }
+  ],
+  "CY": [
+   {
+    "name": "nicosia",
+    "latitude": 35.1856,
+    "longitude": 33.3823,
+    "weight": 1
+   }
+  ],
+  "CZ": [
+   {
+    "name": "prague",
+    "latitude": 50.0755,
+    "longitude": 14.4378,
+    "weight": 0.5
+   },
+   {
+    "name": "brno",
+    "latitude": 49.1951,
+    "longitude": 16.6068,
+    "weight": 0.25
+   },
+   {
+    "name": "ostrava",
+    "latitude": 49.8209,
+    "longitude": 18.2625,
+    "weight": 0.25
+   }
+  ],
+  "DE_AT_LU": [
+   {
+    "name": "berlin",
+    "latitude": 52.52,
+    "longitude": 13.405,
+    "weight": 0.25
+   },
+   {
+    "name": "hamburg",
+    "latitude": 53.5511,
+    "longitude": 9.9937,
+    "weight": 0.2
+   },
+   {
+    "name": "munich",
+    "latitude": 48.1351,
+    "longitude": 11.582,
+    "weight": 0.2
+   },
+   {
+    "name": "frankfurt",
+    "latitude": 50.1109,
+    "longitude": 8.6821,
+    "weight": 0.2
+   },
+   {
+    "name": "cologne",
+    "latitude": 50.9375,
+    "longitude": 6.9603,
+    "weight": 0.15
+   }
+  ],
+  "DE_LU": [
+   {
+    "name": "berlin",
+    "latitude": 52.52,
+    "longitude": 13.405,
+    "weight": 0.25
+   },
+   {
+    "name": "hamburg",
+    "latitude": 53.5511,
+    "longitude": 9.9937,
+    "weight": 0.2
+   },
+   {
+    "name": "munich",
+    "latitude": 48.1351,
+    "longitude": 11.582,
+    "weight": 0.2
+   },
+   {
+    "name": "frankfurt",
+    "latitude": 50.1109,
+    "longitude": 8.6821,
+    "weight": 0.2
+   },
+   {
+    "name": "cologne",
+    "latitude": 50.9375,
+    "longitude": 6.9603,
+    "weight": 0.15
+   }
+  ],
+  "DK_1": [
+   {
+    "name": "aarhus",
+    "latitude": 56.1629,
+    "longitude": 10.2039,
+    "weight": 0.5
+   },
+   {
+    "name": "aalborg",
+    "latitude": 57.0488,
+    "longitude": 9.9217,
+    "weight": 0.25
+   },
+   {
+    "name": "odense",
+    "latitude": 55.4038,
+    "longitude": 10.4024,
+    "weight": 0.25
+   }
+  ],
+  "DK_2": [
+   {
+    "name": "copenhagen",
+    "latitude": 55.6761,
+    "longitude": 12.5683,
+    "weight": 1
+   }
+  ],
+  "EE": [
+   {
+    "name": "tallinn",
+    "latitude": 59.437,
+    "longitude": 24.7536,
+    "weight": 1
+   }
+  ],
+  "ES": [
+   {
+    "name": "madrid",
+    "latitude": 40.4168,
+    "longitude": -3.7038,
+    "weight": 0.3
+   },
+   {
+    "name": "barcelona",
+    "latitude": 41.3874,
+    "longitude": 2.1686,
+    "weight": 0.24
+   },
+   {
+    "name": "valencia",
+    "latitude": 39.4699,
+    "longitude": -0.3763,
+    "weight": 0.17
+   },
+   {
+    "name": "seville",
+    "latitude": 37.3891,
+    "longitude": -5.9845,
+    "weight": 0.16
+   },
+   {
+    "name": "bilbao",
+    "latitude": 43.263,
+    "longitude": -2.935,
+    "weight": 0.13
+   }
+  ],
+  "FI": [
+   {
+    "name": "helsinki",
+    "latitude": 60.1699,
+    "longitude": 24.9384,
+    "weight": 0.5
+   },
+   {
+    "name": "tampere",
+    "latitude": 61.4978,
+    "longitude": 23.761,
+    "weight": 0.25
+   },
+   {
+    "name": "oulu",
+    "latitude": 65.0121,
+    "longitude": 25.4651,
+    "weight": 0.25
+   }
+  ],
+  "FR": [
+   {
+    "name": "paris",
+    "latitude": 48.8566,
+    "longitude": 2.3522,
+    "weight": 0.3
+   },
+   {
+    "name": "lyon",
+    "latitude": 45.764,
+    "longitude": 4.8357,
+    "weight": 0.2
+   },
+   {
+    "name": "marseille",
+    "latitude": 43.2965,
+    "longitude": 5.3698,
+    "weight": 0.2
+   },
+   {
+    "name": "toulouse",
+    "latitude": 43.6047,
+    "longitude": 1.4442,
+    "weight": 0.15
+   },
+   {
+    "name": "lille",
+    "latitude": 50.6292,
+    "longitude": 3.0573,
+    "weight": 0.15
+   }
+  ],
+  "GB": [
+   {
+    "name": "london",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "weight": 0.4
+   },
+   {
+    "name": "manchester",
+    "latitude": 53.4808,
+    "longitude": -2.2426,
+    "weight": 0.3
+   },
+   {
+    "name": "glasgow",
+    "latitude": 55.8642,
+    "longitude": -4.2518,
+    "weight": 0.3
+   }
+  ],
+  "GR": [
+   {
+    "name": "athens",
+    "latitude": 37.9838,
+    "longitude": 23.7275,
+    "weight": 0.6
+   },
+   {
+    "name": "thessaloniki",
+    "latitude": 40.6401,
+    "longitude": 22.9444,
+    "weight": 0.4
+   }
+  ],
+  "HR": [
+   {
+    "name": "zagreb",
+    "latitude": 45.815,
+    "longitude": 15.9819,
+    "weight": 0.6
+   },
+   {
+    "name": "split",
+    "latitude": 43.5081,
+    "longitude": 16.4402,
+    "weight": 0.4
+   }
+  ],
+  "HU": [
+   {
+    "name": "budapest",
+    "latitude": 47.4979,
+    "longitude": 19.0402,
+    "weight": 1
+   }
+  ],
+  "IE_SEM": [
+   {
+    "name": "dublin",
+    "latitude": 53.3498,
+    "longitude": -6.2603,
+    "weight": 0.5
+   },
+   {
+    "name": "belfast",
+    "latitude": 54.5973,
+    "longitude": -5.9301,
+    "weight": 0.25
+   },
+   {
+    "name": "cork",
+    "latitude": 51.8985,
+    "longitude": -8.4756,
+    "weight": 0.25
+   }
+  ],
+  "IT_CNOR": [
+   {
+    "name": "florence",
+    "latitude": 43.7696,
+    "longitude": 11.2558,
+    "weight": 1
+   }
+  ],
+  "IT_CSUD": [
+   {
+    "name": "rome",
+    "latitude": 41.9028,
+    "longitude": 12.4964,
+    "weight": 1
+   }
+  ],
+  "IT_NORD": [
+   {
+    "name": "milan",
+    "latitude": 45.4642,
+    "longitude": 9.19,
+    "weight": 0.5
+   },
+   {
+    "name": "turin",
+    "latitude": 45.0703,
+    "longitude": 7.6869,
+    "weight": 0.25
+   },
+   {
+    "name": "venice",
+    "latitude": 45.4408,
+    "longitude": 12.3155,
+    "weight": 0.25
+   }
+  ],
+  "IT_SARD": [
+   {
+    "name": "cagliari",
+    "latitude": 39.2238,
+    "longitude": 9.1217,
+    "weight": 1
+   }
+  ],
+  "IT_SICI": [
+   {
+    "name": "palermo",
+    "latitude": 38.1157,
+    "longitude": 13.3615,
+    "weight": 0.5
+   },
+   {
+    "name": "catania",
+    "latitude": 37.5079,
+    "longitude": 15.083,
+    "weight": 0.5
+   }
+  ],
+  "IT_SUD": [
+   {
+    "name": "naples",
+    "latitude": 40.8518,
+    "longitude": 14.2681,
+    "weight": 0.6
+   },
+   {
+    "name": "bari",
+    "latitude": 41.1171,
+    "longitude": 16.8719,
+    "weight": 0.4
+   }
+  ],
+  "LT": [
+   {
+    "name": "vilnius",
+    "latitude": 54.6872,
+    "longitude": 25.2797,
+    "weight": 0.6
+   },
+   {
+    "name": "kaunas",
+    "latitude": 54.8985,
+    "longitude": 23.9036,
+    "weight": 0.4
+   }
+  ],
+  "LU": [
+   {
+    "name": "luxembourg",
+    "latitude": 49.6116,
+    "longitude": 6.1319,
+    "weight": 1
+   }
+  ],
+  "LV": [
+   {
+    "name": "riga",
+    "latitude": 56.9496,
+    "longitude": 24.1052,
+    "weight": 1
+   }
+  ],
+  "ME": [
+   {
+    "name": "podgorica",
+    "latitude": 42.4304,
+    "longitude": 19.2594,
+    "weight": 1
+   }
+  ],
+  "MK": [
+   {
+    "name": "skopje",
+    "latitude": 41.9981,
+    "longitude": 21.4254,
+    "weight": 1
+   }
+  ],
+  "MT": [
+   {
+    "name": "valletta",
+    "latitude": 35.8989,
+    "longitude": 14.5146,
+    "weight": 1
+   }
+  ],
+  "NL": [
+   {
+    "name": "amsterdam",
+    "latitude": 52.3676,
+    "longitude": 4.9041,
+    "weight": 0.4
+   },
+   {
+    "name": "rotterdam",
+    "latitude": 51.9244,
+    "longitude": 4.4777,
+    "weight": 0.3
+   },
+   {
+    "name": "eindhoven",
+    "latitude": 51.4416,
+    "longitude": 5.4697,
+    "weight": 0.3
+   }
+  ],
+  "NO_1": [
+   {
+    "name": "oslo",
+    "latitude": 59.9139,
+    "longitude": 10.7522,
+    "weight": 1
+   }
+  ],
+  "NO_2": [
+   {
+    "name": "stavanger",
+    "latitude": 58.97,
+    "longitude": 5.7331,
+    "weight": 0.5
+   },
+   {
+    "name": "kristiansand",
+    "latitude": 58.1467,
+    "longitude": 7.9956,
+    "weight": 0.5
+   }
+  ],
+  "NO_3": [
+   {
+    "name": "trondheim",
+    "latitude": 63.4305,
+    "longitude": 10.3951,
+    "weight": 1
+   }
+  ],
+  "NO_4": [
+   {
+    "name": "tromso",
+    "latitude": 69.6492,
+    "longitude": 18.9553,
+    "weight": 1
+   }
+  ],
+  "NO_5": [
+   {
+    "name": "bergen",
+    "latitude": 60.3913,
+    "longitude": 5.3221,
+    "weight": 1
+   }
+  ],
+  "PL": [
+   {
+    "name": "warsaw",
+    "latitude": 52.2297,
+    "longitude": 21.0122,
+    "weight": 0.4
+   },
+   {
+    "name": "krakow",
+    "latitude": 50.0647,
+    "longitude": 19.945,
+    "weight": 0.3
+   },
+   {
+    "name": "gdansk",
+    "latitude": 54.352,
+    "longitude": 18.6466,
+    "weight": 0.3
+   }
+  ],
+  "PT": [
+   {
+    "name": "lisbon",
+    "latitude": 38.7223,
+    "longitude": -9.1393,
+    "weight": 0.5
+   },
+   {
+    "name": "porto",
+    "latitude": 41.1579,
+    "longitude": -8.6291,
+    "weight": 0.5
+   }
+  ],
+  "RO": [
+   {
+    "name": "bucharest",
+    "latitude": 44.4268,
+    "longitude": 26.1025,
+    "weight": 0.5
+   },
+   {
+    "name": "cluj",
+    "latitude": 46.7712,
+    "longitude": 23.6236,
+    "weight": 0.25
+   },
+   {
+    "name": "iasi",
+    "latitude": 47.1585,
+    "longitude": 27.6014,
+    "weight": 0.25
+   }
+  ],
+  "RS": [
+   {
+    "name": "belgrade",
+    "latitude": 44.7866,
+    "longitude": 20.4489,
+    "weight": 0.7
+   },
+   {
+    "name": "novi_sad",
+    "latitude": 45.2671,
+    "longitude": 19.8335,
+    "weight": 0.3
+   }
+  ],
+  "SE_1": [
+   {
+    "name": "lulea",
+    "latitude": 65.5848,
+    "longitude": 22.1547,
+    "weight": 1
+   }
+  ],
+  "SE_2": [
+   {
+    "name": "sundsvall",
+    "latitude": 62.3908,
+    "longitude": 17.3069,
+    "weight": 1
+   }
+  ],
+  "SE_3": [
+   {
+    "name": "stockholm",
+    "latitude": 59.3293,
+    "longitude": 18.0686,
+    "weight": 0.5
+   },
+   {
+    "name": "gothenburg",
+    "latitude": 57.7089,
+    "longitude": 11.9746,
+    "weight": 0.5
+   }
+  ],
+  "SE_4": [
+   {
+    "name": "malmo",
+    "latitude": 55.605,
+    "longitude": 13.0038,
+    "weight": 1
+   }
+  ],
+  "SI": [
+   {
+    "name": "ljubljana",
+    "latitude": 46.0569,
+    "longitude": 14.5058,
+    "weight": 1
+   }
+  ],
+  "SK": [
+   {
+    "name": "bratislava",
+    "latitude": 48.1486,
+    "longitude": 17.1077,
+    "weight": 0.5
+   },
+   {
+    "name": "kosice",
+    "latitude": 48.7164,
+    "longitude": 21.2611,
+    "weight": 0.5
+   }
+  ],
+  "TR": [
+   {
+    "name": "istanbul",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "weight": 0.5
+   },
+   {
+    "name": "ankara",
+    "latitude": 39.9334,
+    "longitude": 32.8597,
+    "weight": 0.3
+   },
+   {
+    "name": "izmir",
+    "latitude": 38.4237,
+    "longitude": 27.1428,
+    "weight": 0.2
+   }
+  ],
+  "XK": [
+   {
+    "name": "pristina",
+    "latitude": 42.6629,
+    "longitude": 21.1655,
+    "weight": 1
+   }
+  ]
+ }
+}

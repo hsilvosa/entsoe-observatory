@@ -193,3 +193,41 @@ def build_bronze(
     }
     write_run_manifest(settings, run_id, "bronze", summary)
     return {k: v for k, v in summary.items() if k != "inputs"}
+
+
+def merge_into_bronze(
+    settings: Settings, dataset: str, zone_key: str, table: pa.Table
+) -> dict[str, Any]:
+    """Merge new rows into the affected month partitions (idempotent per payload checksum).
+
+    Each affected month directory is rebuilt next to the old one and swapped. Rows from a
+    payload that is already stored (same `source_sha256`) are replaced, never duplicated.
+    """
+    import shutil
+
+    table = _partition_columns(table)
+    zone_dir = settings.layer_dir("bronze", dataset) / f"zone={zone_key}"
+    months = sorted(
+        {(y, m) for y, m in zip(table["year"].to_pylist(), table["month"].to_pylist(), strict=True)}
+    )
+    new_checksums = set(table["source_sha256"].to_pylist())
+    touched: list[tuple[str, str]] = []
+    added = 0
+    for year, month in months:
+        mask = pc.and_(pc.equal(table["year"], year), pc.equal(table["month"], month))
+        fresh = table.filter(mask).drop_columns(["year", "month"])
+        month_dir = zone_dir / f"year={year}" / f"month={month}"
+        parts = [fresh]
+        if month_dir.exists():
+            existing = pq.read_table(month_dir)
+            keep = pc.invert(pc.is_in(existing["source_sha256"], pa.array(list(new_checksums))))
+            parts.insert(0, existing.filter(keep).select(fresh.column_names).cast(fresh.schema))
+        tmp_dir = month_dir.with_name(month_dir.name + ".tmp")
+        if tmp_dir.exists():
+            shutil.rmtree(tmp_dir)
+        tmp_dir.mkdir(parents=True)
+        pq.write_table(pa.concat_tables(parts), tmp_dir / "part-0.parquet", compression="zstd")
+        swap_directory(tmp_dir, month_dir)
+        touched.append((year, month))
+        added += fresh.num_rows
+    return {"months": touched, "rows": added}

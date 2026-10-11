@@ -36,8 +36,17 @@ def build_card(settings: Settings) -> str:
     gold = _latest_manifest(settings, "gold")
     if gold is None:
         raise FileNotFoundError("no gold run manifest: run `gold` first")
-    rows = {t["table"]: t for t in gold["tables"]}
     con = duckdb.connect()
+    # Row counts come from the files, so a partial rebuild still gives a complete card.
+    rows: dict[str, dict[str, Any]] = {}
+    for name in TABLE_ORDER:
+        directory = settings.layer_dir("gold", name)
+        if directory.exists():
+            pattern = (directory / "**" / "*.parquet").as_posix()
+            counted = con.execute(
+                f"SELECT count(*) FROM read_parquet('{pattern}', hive_partitioning=false)"
+            ).fetchone()
+            rows[name] = {"rows": counted[0] if counted else 0}
     zone_daily = (settings.layer_dir("gold", "zone_daily") / "**" / "*.parquet").as_posix()
     span = con.execute(
         f"SELECT min(local_date), max(local_date), count(DISTINCT zone_key) "

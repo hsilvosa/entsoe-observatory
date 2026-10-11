@@ -145,3 +145,11 @@ def test_huggingface_dry_run_makes_no_api_call(scenario: Pipeline) -> None:  # n
     api = FakeHfApi()
     summary = publish_huggingface(scenario.settings, api, dry_run=True)
     assert api.calls == [] and summary["files"] > 10
+
+
+def test_card_counts_rows_from_files_after_a_partial_rebuild(scenario: Pipeline) -> None:  # noqa: F811
+    from entsoe_observatory.gold import build_gold
+
+    build_gold(scenario.settings, tables=["zone_daily"])  # newest manifest lists one table only
+    card = build_card(scenario.settings)
+    assert "### `price_native`" in card and "### `zone_daily`" in card

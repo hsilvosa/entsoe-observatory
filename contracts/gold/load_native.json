@@ -1,0 +1,80 @@
+{
+ "name": "load_native",
+ "version": "1.0.0",
+ "description": "Actual total load at native resolution, valid values only.",
+ "grain": [
+  "zone_key",
+  "timestamp_utc",
+  "resolution"
+ ],
+ "partition_by": [
+  "zone_key",
+  "year"
+ ],
+ "columns": [
+  {
+   "name": "zone_key",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "Bidding zone key from the zone registry."
+  },
+  {
+   "name": "timestamp_utc",
+   "type": "TIMESTAMP WITH TIME ZONE",
+   "nullable": false,
+   "description": "Start of the slot."
+  },
+  {
+   "name": "timestamp_local",
+   "type": "TIMESTAMP",
+   "nullable": false,
+   "description": "Slot start in the zone timezone."
+  },
+  {
+   "name": "local_date",
+   "type": "DATE",
+   "nullable": false,
+   "description": "Local date."
+  },
+  {
+   "name": "resolution",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "ISO 8601 resolution."
+  },
+  {
+   "name": "resolution_minutes",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Resolution in minutes."
+  },
+  {
+   "name": "load_mw",
+   "type": "DOUBLE",
+   "nullable": false,
+   "description": "Actual total load in MW."
+  },
+  {
+   "name": "is_a03_filled",
+   "type": "BOOLEAN",
+   "nullable": false,
+   "description": "True when the slot comes from A03 expansion."
+  },
+  {
+   "name": "revision_number",
+   "type": "INTEGER",
+   "nullable": true,
+   "description": "Revision of the source document."
+  },
+  {
+   "name": "year",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Calendar year of the UTC timestamp (partition column)."
+  }
+ ],
+ "constraints": [
+  "load_mw >= 0",
+  "resolution_minutes IN (15, 30, 60)"
+ ]
+}

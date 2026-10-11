@@ -189,8 +189,13 @@ def publish_r2_command(
     """Sync gold, contracts and the dataset card to Cloudflare R2."""
     settings = Settings()
     started = time.perf_counter()
-    store = None if dry_run else S3Store(settings)
-    summary = publish_r2(settings, store or _DryStore(), dry_run=dry_run, prune=prune)  # type: ignore[arg-type]
+    configured = all(
+        (settings.r2_account_id, settings.r2_bucket, settings.r2_access_key_id,
+         settings.r2_secret_access_key)
+    )
+    # A dry run reads the remote manifest when credentials exist, so the plan is accurate.
+    store = S3Store(settings) if configured else _DryStore()
+    summary = publish_r2(settings, store, dry_run=dry_run, prune=prune)  # type: ignore[arg-type]
     _echo("publish-r2", summary, started)
 
 

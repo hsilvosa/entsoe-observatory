@@ -1,7 +1,7 @@
 {
  "name": "cross_zone_spread_hourly",
  "version": "1.0.0",
- "description": "Hourly EUR price spread between neighbouring zones (spread = zone_a - zone_b), only for hours where both zones have a price.",
+ "description": "Hourly EUR price spread between neighbouring zones (spread = zone_a - zone_b), only for hours where both zones have a complete hourly price (all expected slots present).",
  "grain": [
   "zone_a",
   "zone_b",

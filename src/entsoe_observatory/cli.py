@@ -14,6 +14,7 @@ from .client import EntsoeClient
 from .dq import DataQualityError, run_checks
 from .events import GridEventV2
 from .fx import pull_fx
+from .gold import ContractViolation, build_gold
 from .live import pull_live
 from .reconcile import reconcile as run_reconcile
 from .settings import Settings
@@ -150,3 +151,18 @@ def dq(strict: Annotated[bool, typer.Option(help="Exit 1 on blocking failures.")
 def contracts() -> None:
     """Print the JSON schema of the event contract v2."""
     typer.echo(json.dumps(GridEventV2.model_json_schema(), indent=2, sort_keys=True))
+
+
+@app.command()
+def gold(
+    table: Annotated[list[str] | None, typer.Option("--table", help="Only this table.")] = None,
+) -> None:
+    """Build the gold tables from silver and enforce their contracts."""
+    started = time.perf_counter()
+    try:
+        summary = build_gold(Settings(), tables=table, on_progress=typer.echo)
+    except ContractViolation as error:
+        typer.echo(f"gold FAILED: {error}")
+        raise typer.Exit(code=1) from None
+    _echo("gold", {"rows": summary["rows"], "mb": round(summary["bytes"] / 2**20, 1),
+                   "skipped": summary["skipped"]}, started)

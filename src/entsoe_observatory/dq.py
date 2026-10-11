@@ -79,6 +79,7 @@ days AS (
 ),
 joined AS (
     SELECT d.zone_key, d.sequence, d.local_date, d.d0, d.d1, z.tz,
+           ('{{dataset}}' = 'actual_load' OR d.sequence = z.sdac_sequence) AS is_primary,
            coalesce(c.covered_minutes, 0) AS covered_minutes,
            coalesce(c.slots_present, 0) AS slots_present,
            c.resolution_list
@@ -89,7 +90,8 @@ joined AS (
 measured AS (
     SELECT *, {DAY_MINUTES} AS expected_minutes FROM joined
 )
-SELECT '{{dataset}}' AS dataset, zone_key, sequence, local_date, resolution_list, slots_present,
+SELECT '{{dataset}}' AS dataset, zone_key, sequence, is_primary, local_date, resolution_list,
+       slots_present,
        covered_minutes, expected_minutes,
        covered_minutes / expected_minutes AS coverage_ratio,
        CASE
@@ -110,7 +112,7 @@ SELECT 'completeness' AS check_name, '{warning}' AS severity, '{dataset}' AS dat
        count(*) FILTER (WHERE status <> 'complete') AS failed_count, count(*) AS total_count,
        'worst day ' || CAST(arg_min(local_date, coverage_ratio) AS VARCHAR)
            || ' coverage ' || CAST(round(min(coverage_ratio), 3) AS VARCHAR) AS detail
-FROM completeness_daily GROUP BY zone_key
+FROM completeness_daily WHERE is_primary GROUP BY zone_key
 UNION ALL
 -- duplicates on the business key (blocking)
 SELECT 'duplicate_business_key', '{blocking}', '{dataset}', zone_key,
@@ -151,7 +153,7 @@ FROM (
         SELECT zone_key, sequence, local_date, resolution_list,
                lag(resolution_list) OVER (PARTITION BY zone_key, sequence ORDER BY local_date)
                    AS previous
-        FROM completeness_daily WHERE resolution_list IS NOT NULL
+        FROM completeness_daily WHERE resolution_list IS NOT NULL AND is_primary
     ) WHERE previous IS NOT NULL AND previous <> resolution_list
 ) GROUP BY zone_key
 UNION ALL
@@ -248,12 +250,12 @@ def run_checks(
     con.execute("SET TimeZone='UTC'")
     con.execute(
         "CREATE TEMP TABLE zones (zone_key VARCHAR, tz VARCHAR, currencies VARCHAR[],"
-        " valid_to DATE)"
+        " valid_to DATE, sdac_sequence INTEGER)"
     )
     for zone in registry.values():
         con.execute(
-            "INSERT INTO zones VALUES (?, ?, ?, ?)",
-            [zone.key, zone.timezone, zone.currencies, zone.valid_to],
+            "INSERT INTO zones VALUES (?, ?, ?, ?, ?)",
+            [zone.key, zone.timezone, zone.currencies, zone.valid_to, zone.sdac_sequence],
         )
     out_dir = settings.layer_dir("dq") / f"run_id={run_id}"
     if out_dir.exists():
@@ -266,7 +268,8 @@ def run_checks(
     )
     con.execute(
         "CREATE TEMP TABLE all_completeness (dataset VARCHAR, zone_key VARCHAR,"
-        " sequence INTEGER, local_date DATE, resolution_list VARCHAR, slots_present BIGINT,"
+        " sequence INTEGER, is_primary BOOLEAN, local_date DATE, resolution_list VARCHAR,"
+        " slots_present BIGINT,"
         " covered_minutes BIGINT, expected_minutes BIGINT, coverage_ratio DOUBLE,"
         " status VARCHAR)"
     )

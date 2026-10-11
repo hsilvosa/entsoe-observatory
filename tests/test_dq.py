@@ -159,3 +159,19 @@ def test_partial_first_and_last_days_are_not_reported_as_gaps(run_pipeline: Run)
     report = run_checks(p.settings, now=NOW)
     row = find(results(report.path), "completeness")
     assert (row["failed_count"], row["total_count"]) == (0, 1)
+
+
+def test_secondary_price_sequences_do_not_count_as_gaps(run_pipeline: Run) -> None:
+    # AT publishes the SDAC auction (sequence 1) and a second series (sequence 2) that only
+    # covers one of the two days. Completeness is judged on the SDAC series only.
+    sdac = PeriodSpec("2025-01-01T23:00Z", "2025-01-04T23:00Z", "PT60M", {1: 10.0})
+    other = PeriodSpec("2025-01-02T23:00Z", "2025-01-03T23:00Z", "PT15M", {1: 99.0})
+    doc = DocSpec(
+        [SeriesSpec([sdac], sequence=1), SeriesSpec([other], sequence=2)],
+        "2025-01-01T23:00Z",
+        "2025-01-04T23:00Z",
+    )
+    p = run_pipeline([(PRICES, "AT", "a.xml", doc)])
+    report = run_checks(p.settings, now=NOW)
+    row = find(results(report.path), "completeness", "AT")
+    assert (row["failed_count"], row["total_count"]) == (0, 3)

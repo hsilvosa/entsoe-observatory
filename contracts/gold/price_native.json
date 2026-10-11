@@ -1,0 +1,118 @@
+{
+ "name": "price_native",
+ "version": "1.0.0",
+ "description": "SDAC day-ahead prices at native resolution with EUR conversion. One series per zone (AT and DE_LU use the SDAC sequence of the registry).",
+ "grain": [
+  "zone_key",
+  "timestamp_utc",
+  "resolution"
+ ],
+ "partition_by": [
+  "zone_key",
+  "year"
+ ],
+ "columns": [
+  {
+   "name": "zone_key",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "Bidding zone key from the zone registry."
+  },
+  {
+   "name": "timestamp_utc",
+   "type": "TIMESTAMP WITH TIME ZONE",
+   "nullable": false,
+   "description": "Start of the delivery slot."
+  },
+  {
+   "name": "timestamp_local",
+   "type": "TIMESTAMP",
+   "nullable": false,
+   "description": "Slot start in the zone timezone."
+  },
+  {
+   "name": "local_date",
+   "type": "DATE",
+   "nullable": false,
+   "description": "Local delivery date."
+  },
+  {
+   "name": "resolution",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "ISO 8601 resolution of the source: PT15M, PT30M or PT60M."
+  },
+  {
+   "name": "resolution_minutes",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Resolution in minutes."
+  },
+  {
+   "name": "sequence",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Source price sequence (the SDAC one)."
+  },
+  {
+   "name": "price_local",
+   "type": "DOUBLE",
+   "nullable": false,
+   "description": "Price in the publication currency per MWh."
+  },
+  {
+   "name": "currency",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "Publication currency."
+  },
+  {
+   "name": "fx_units_per_eur",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "ECB units of currency per EUR used for the conversion; null for EUR or when missing."
+  },
+  {
+   "name": "fx_rate_date",
+   "type": "DATE",
+   "nullable": true,
+   "description": "Date of the ECB rate used."
+  },
+  {
+   "name": "price_eur",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Price in EUR/MWh; null only when the rate is missing."
+  },
+  {
+   "name": "fx_status",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "native, converted or missing_rate."
+  },
+  {
+   "name": "is_a03_filled",
+   "type": "BOOLEAN",
+   "nullable": false,
+   "description": "True when the slot comes from A03 expansion."
+  },
+  {
+   "name": "revision_number",
+   "type": "INTEGER",
+   "nullable": true,
+   "description": "Revision of the source document."
+  },
+  {
+   "name": "year",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Calendar year of the UTC timestamp (partition column)."
+  }
+ ],
+ "constraints": [
+  "price_eur IS NOT NULL OR fx_status = 'missing_rate'",
+  "fx_status <> 'native' OR currency = 'EUR'",
+  "resolution_minutes IN (15, 30, 60)",
+  "price_local BETWEEN -10000 AND 100000"
+ ]
+}

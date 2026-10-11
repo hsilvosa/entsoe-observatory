@@ -1,0 +1,96 @@
+{
+ "name": "dq_scorecard",
+ "version": "1.0.0",
+ "description": "Daily completeness and validity per dataset, zone and source sequence, from the newest data quality run.",
+ "grain": [
+  "dataset",
+  "zone_key",
+  "sequence",
+  "local_date"
+ ],
+ "partition_by": [],
+ "columns": [
+  {
+   "name": "dataset",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "day_ahead_prices or actual_load."
+  },
+  {
+   "name": "zone_key",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "Bidding zone key from the zone registry."
+  },
+  {
+   "name": "sequence",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Source sequence."
+  },
+  {
+   "name": "is_primary",
+   "type": "BOOLEAN",
+   "nullable": false,
+   "description": "True for the SDAC price series and for load."
+  },
+  {
+   "name": "local_date",
+   "type": "DATE",
+   "nullable": false,
+   "description": "Local day."
+  },
+  {
+   "name": "expected_minutes",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Minutes in the local day (DST aware)."
+  },
+  {
+   "name": "covered_minutes",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Minutes covered by valid slots."
+  },
+  {
+   "name": "coverage_ratio",
+   "type": "DOUBLE",
+   "nullable": false,
+   "description": "covered_minutes / expected_minutes."
+  },
+  {
+   "name": "completeness_status",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "complete, incomplete or overlap."
+  },
+  {
+   "name": "rows_total",
+   "type": "BIGINT",
+   "nullable": false,
+   "description": "Silver rows of the day."
+  },
+  {
+   "name": "rows_invalid",
+   "type": "BIGINT",
+   "nullable": false,
+   "description": "Rows flagged invalid."
+  },
+  {
+   "name": "validity_ratio",
+   "type": "DOUBLE",
+   "nullable": true,
+   "description": "Valid rows / rows (null when there are no rows)."
+  },
+  {
+   "name": "dq_run_id",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "Data quality run that produced the row."
+  }
+ ],
+ "constraints": [
+  "covered_minutes >= 0",
+  "validity_ratio IS NULL OR validity_ratio BETWEEN 0 AND 1"
+ ]
+}

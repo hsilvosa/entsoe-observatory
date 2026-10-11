@@ -12,7 +12,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "AT",
@@ -24,7 +25,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 1
   },
   {
    "key": "BA",
@@ -36,7 +38,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "BE",
@@ -48,7 +51,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "BG",
@@ -61,7 +65,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "CH",
@@ -73,7 +78,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "CY",
@@ -85,7 +91,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "CZ",
@@ -97,7 +104,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "DE_AT_LU",
@@ -109,7 +117,8 @@
    "currencies": [
     "EUR"
    ],
-   "valid_from": null
+   "valid_from": null,
+   "sdac_sequence": 0
   },
   {
    "key": "DE_LU",
@@ -121,7 +130,8 @@
    "currencies": [
     "EUR"
    ],
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 1
   },
   {
    "key": "DK_1",
@@ -133,7 +143,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "DK_2",
@@ -145,7 +156,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "EE",
@@ -157,7 +169,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "ES",
@@ -169,7 +182,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "FI",
@@ -181,7 +195,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "FR",
@@ -193,7 +208,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "GB",
@@ -205,7 +221,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "GR",
@@ -217,7 +234,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "HR",
@@ -229,7 +247,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "HU",
@@ -241,7 +260,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "IE_SEM",
@@ -253,7 +273,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "IT_CNOR",
@@ -265,7 +286,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "IT_CSUD",
@@ -277,7 +299,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "IT_NORD",
@@ -289,7 +312,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "IT_SARD",
@@ -301,7 +325,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "IT_SICI",
@@ -313,7 +338,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "IT_SUD",
@@ -325,7 +351,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "LT",
@@ -337,7 +364,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "LU",
@@ -349,7 +377,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "LV",
@@ -361,7 +390,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "ME",
@@ -373,7 +403,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "MK",
@@ -385,7 +416,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "MT",
@@ -397,7 +429,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "NL",
@@ -409,7 +442,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "NO_1",
@@ -421,7 +455,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "NO_2",
@@ -433,7 +468,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "NO_3",
@@ -445,7 +481,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "NO_4",
@@ -457,7 +494,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "NO_5",
@@ -469,7 +507,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "PL",
@@ -482,7 +521,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "PT",
@@ -494,7 +534,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "RO",
@@ -507,7 +548,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "RS",
@@ -519,7 +561,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "SE_1",
@@ -531,7 +574,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "SE_2",
@@ -543,7 +587,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "SE_3",
@@ -555,7 +600,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "SE_4",
@@ -567,7 +613,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "SI",
@@ -579,7 +626,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "SK",
@@ -591,7 +639,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "TR",
@@ -603,7 +652,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   },
   {
    "key": "XK",
@@ -615,7 +665,8 @@
     "EUR"
    ],
    "valid_from": null,
-   "valid_to": null
+   "valid_to": null,
+   "sdac_sequence": 0
   }
  ]
 }

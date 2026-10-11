@@ -1,0 +1,94 @@
+{
+ "name": "dq_scorecard_summary",
+ "version": "1.0.0",
+ "description": "Per dataset and zone: failed checks, freshness and completeness share from the newest data quality run.",
+ "grain": [
+  "dataset",
+  "zone_key"
+ ],
+ "partition_by": [],
+ "columns": [
+  {
+   "name": "dataset",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "day_ahead_prices or actual_load."
+  },
+  {
+   "name": "zone_key",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "Bidding zone key from the zone registry."
+  },
+  {
+   "name": "days_total",
+   "type": "BIGINT",
+   "nullable": false,
+   "description": "Local days of the primary series."
+  },
+  {
+   "name": "days_complete",
+   "type": "BIGINT",
+   "nullable": false,
+   "description": "Days with full coverage."
+  },
+  {
+   "name": "completeness_share",
+   "type": "DOUBLE",
+   "nullable": false,
+   "description": "days_complete / days_total."
+  },
+  {
+   "name": "first_date",
+   "type": "DATE",
+   "nullable": false,
+   "description": "First local day."
+  },
+  {
+   "name": "last_date",
+   "type": "DATE",
+   "nullable": false,
+   "description": "Last local day."
+  },
+  {
+   "name": "warning_checks_failed",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Warning checks that failed."
+  },
+  {
+   "name": "blocking_checks_failed",
+   "type": "INTEGER",
+   "nullable": false,
+   "description": "Blocking checks that failed."
+  },
+  {
+   "name": "freshness_ok",
+   "type": "BOOLEAN",
+   "nullable": true,
+   "description": "Freshness check result; null if not evaluated."
+  },
+  {
+   "name": "freshness_detail",
+   "type": "VARCHAR",
+   "nullable": true,
+   "description": "Freshness check detail."
+  },
+  {
+   "name": "dq_run_id",
+   "type": "VARCHAR",
+   "nullable": false,
+   "description": "Data quality run id."
+  },
+  {
+   "name": "checked_at_utc",
+   "type": "TIMESTAMP WITH TIME ZONE",
+   "nullable": false,
+   "description": "When the run executed."
+  }
+ ],
+ "constraints": [
+  "days_complete <= days_total",
+  "completeness_share BETWEEN 0 AND 1"
+ ]
+}

@@ -1,0 +1,619 @@
+{
+ "version": 1,
+ "source": "seeded from D:/datasets entsoe-transparency configs/zones.json (own pipeline)",
+ "zones": [
+  {
+   "key": "AL",
+   "name": "Albania",
+   "country_code": "AL",
+   "eic_code": "10YAL-KESH-----5",
+   "timezone": "Europe/Tirane",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "AT",
+   "name": "Austria",
+   "country_code": "AT",
+   "eic_code": "10YAT-APG------L",
+   "timezone": "Europe/Vienna",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "BA",
+   "name": "Bosnia and Herzegovina",
+   "country_code": "BA",
+   "eic_code": "10YBA-JPCC-----D",
+   "timezone": "Europe/Sarajevo",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "BE",
+   "name": "Belgium",
+   "country_code": "BE",
+   "eic_code": "10YBE----------2",
+   "timezone": "Europe/Brussels",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "BG",
+   "name": "Bulgaria",
+   "country_code": "BG",
+   "eic_code": "10YCA-BULGARIA-R",
+   "timezone": "Europe/Sofia",
+   "currencies": [
+    "BGN",
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "CH",
+   "name": "Switzerland",
+   "country_code": "CH",
+   "eic_code": "10YCH-SWISSGRIDZ",
+   "timezone": "Europe/Zurich",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "CY",
+   "name": "Cyprus",
+   "country_code": "CY",
+   "eic_code": "10YCY-1001A0003J",
+   "timezone": "Asia/Nicosia",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "CZ",
+   "name": "Czechia",
+   "country_code": "CZ",
+   "eic_code": "10YCZ-CEPS-----N",
+   "timezone": "Europe/Prague",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "DE_AT_LU",
+   "name": "Germany-Austria-Luxembourg",
+   "country_code": "DE",
+   "eic_code": "10Y1001A1001A63L",
+   "valid_to": "2018-10-01",
+   "timezone": "Europe/Berlin",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null
+  },
+  {
+   "key": "DE_LU",
+   "name": "Germany-Luxembourg",
+   "country_code": "DE",
+   "eic_code": "10Y1001A1001A82H",
+   "valid_from": "2018-10-01",
+   "timezone": "Europe/Berlin",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_to": null
+  },
+  {
+   "key": "DK_1",
+   "name": "Denmark 1",
+   "country_code": "DK",
+   "eic_code": "10YDK-1--------W",
+   "timezone": "Europe/Copenhagen",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "DK_2",
+   "name": "Denmark 2",
+   "country_code": "DK",
+   "eic_code": "10YDK-2--------M",
+   "timezone": "Europe/Copenhagen",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "EE",
+   "name": "Estonia",
+   "country_code": "EE",
+   "eic_code": "10Y1001A1001A39I",
+   "timezone": "Europe/Tallinn",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "ES",
+   "name": "Spain",
+   "country_code": "ES",
+   "eic_code": "10YES-REE------0",
+   "timezone": "Europe/Madrid",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "FI",
+   "name": "Finland",
+   "country_code": "FI",
+   "eic_code": "10YFI-1--------U",
+   "timezone": "Europe/Helsinki",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "FR",
+   "name": "France",
+   "country_code": "FR",
+   "eic_code": "10YFR-RTE------C",
+   "timezone": "Europe/Paris",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "GB",
+   "name": "Great Britain",
+   "country_code": "GB",
+   "eic_code": "10YGB-1001A0001",
+   "timezone": "Europe/London",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "GR",
+   "name": "Greece",
+   "country_code": "GR",
+   "eic_code": "10YGR-HTSO-----Y",
+   "timezone": "Europe/Athens",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "HR",
+   "name": "Croatia",
+   "country_code": "HR",
+   "eic_code": "10YHR-HEP------M",
+   "timezone": "Europe/Zagreb",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "HU",
+   "name": "Hungary",
+   "country_code": "HU",
+   "eic_code": "10YHU-MAVIR----U",
+   "timezone": "Europe/Budapest",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "IE_SEM",
+   "name": "Ireland SEM",
+   "country_code": "IE",
+   "eic_code": "10Y1001A1001A59C",
+   "timezone": "Europe/Dublin",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "IT_CNOR",
+   "name": "Italy Centre-North",
+   "country_code": "IT",
+   "eic_code": "10Y1001A1001A70O",
+   "timezone": "Europe/Rome",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "IT_CSUD",
+   "name": "Italy Centre-South",
+   "country_code": "IT",
+   "eic_code": "10Y1001A1001A71M",
+   "timezone": "Europe/Rome",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "IT_NORD",
+   "name": "Italy North",
+   "country_code": "IT",
+   "eic_code": "10Y1001A1001A73I",
+   "timezone": "Europe/Rome",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "IT_SARD",
+   "name": "Italy Sardinia",
+   "country_code": "IT",
+   "eic_code": "10Y1001A1001A74G",
+   "timezone": "Europe/Rome",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "IT_SICI",
+   "name": "Italy Sicily",
+   "country_code": "IT",
+   "eic_code": "10Y1001A1001A75E",
+   "timezone": "Europe/Rome",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "IT_SUD",
+   "name": "Italy South",
+   "country_code": "IT",
+   "eic_code": "10Y1001A1001A788",
+   "timezone": "Europe/Rome",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "LT",
+   "name": "Lithuania",
+   "country_code": "LT",
+   "eic_code": "10YLT-1001A0008Q",
+   "timezone": "Europe/Vilnius",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "LU",
+   "name": "Luxembourg",
+   "country_code": "LU",
+   "eic_code": "10YLU-CEGEDEL-NQ",
+   "timezone": "Europe/Luxembourg",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "LV",
+   "name": "Latvia",
+   "country_code": "LV",
+   "eic_code": "10YLV-1001A00074",
+   "timezone": "Europe/Riga",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "ME",
+   "name": "Montenegro",
+   "country_code": "ME",
+   "eic_code": "10YCS-CG-TSO---S",
+   "timezone": "Europe/Podgorica",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "MK",
+   "name": "North Macedonia",
+   "country_code": "MK",
+   "eic_code": "10YMK-MEPSO----8",
+   "timezone": "Europe/Skopje",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "MT",
+   "name": "Malta",
+   "country_code": "MT",
+   "eic_code": "10Y1001A1001A93C",
+   "timezone": "Europe/Malta",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "NL",
+   "name": "Netherlands",
+   "country_code": "NL",
+   "eic_code": "10YNL----------L",
+   "timezone": "Europe/Amsterdam",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "NO_1",
+   "name": "Norway 1",
+   "country_code": "NO",
+   "eic_code": "10YNO-1--------2",
+   "timezone": "Europe/Oslo",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "NO_2",
+   "name": "Norway 2",
+   "country_code": "NO",
+   "eic_code": "10YNO-2--------T",
+   "timezone": "Europe/Oslo",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "NO_3",
+   "name": "Norway 3",
+   "country_code": "NO",
+   "eic_code": "10YNO-3--------J",
+   "timezone": "Europe/Oslo",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "NO_4",
+   "name": "Norway 4",
+   "country_code": "NO",
+   "eic_code": "10YNO-4--------9",
+   "timezone": "Europe/Oslo",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "NO_5",
+   "name": "Norway 5",
+   "country_code": "NO",
+   "eic_code": "10Y1001A1001A48H",
+   "timezone": "Europe/Oslo",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "PL",
+   "name": "Poland",
+   "country_code": "PL",
+   "eic_code": "10YPL-AREA-----S",
+   "timezone": "Europe/Warsaw",
+   "currencies": [
+    "PLN"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "PT",
+   "name": "Portugal",
+   "country_code": "PT",
+   "eic_code": "10YPT-REN------W",
+   "timezone": "Europe/Lisbon",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "RO",
+   "name": "Romania",
+   "country_code": "RO",
+   "eic_code": "10YRO-TEL------P",
+   "timezone": "Europe/Bucharest",
+   "currencies": [
+    "RON"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "RS",
+   "name": "Serbia",
+   "country_code": "RS",
+   "eic_code": "10YCS-SERBIATSOV",
+   "timezone": "Europe/Belgrade",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "SE_1",
+   "name": "Sweden 1",
+   "country_code": "SE",
+   "eic_code": "10Y1001A1001A44P",
+   "timezone": "Europe/Stockholm",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "SE_2",
+   "name": "Sweden 2",
+   "country_code": "SE",
+   "eic_code": "10Y1001A1001A45N",
+   "timezone": "Europe/Stockholm",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "SE_3",
+   "name": "Sweden 3",
+   "country_code": "SE",
+   "eic_code": "10Y1001A1001A46L",
+   "timezone": "Europe/Stockholm",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "SE_4",
+   "name": "Sweden 4",
+   "country_code": "SE",
+   "eic_code": "10Y1001A1001A47J",
+   "timezone": "Europe/Stockholm",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "SI",
+   "name": "Slovenia",
+   "country_code": "SI",
+   "eic_code": "10YSI-ELES-----O",
+   "timezone": "Europe/Ljubljana",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "SK",
+   "name": "Slovakia",
+   "country_code": "SK",
+   "eic_code": "10YSK-SEPS-----K",
+   "timezone": "Europe/Bratislava",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "TR",
+   "name": "T\u00fcrkiye",
+   "country_code": "TR",
+   "eic_code": "10YTR-TEIAS----W",
+   "timezone": "Europe/Istanbul",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  },
+  {
+   "key": "XK",
+   "name": "Kosovo",
+   "country_code": "XK",
+   "eic_code": "10Y1001C--00100H",
+   "timezone": "Europe/Belgrade",
+   "currencies": [
+    "EUR"
+   ],
+   "valid_from": null,
+   "valid_to": null
+  }
+ ]
+}

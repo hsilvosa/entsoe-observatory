@@ -4,33 +4,40 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ENTSO-E observatory</title>
+  <meta name="description" content="Day-ahead prices and load across European bidding zones, with data quality.">
   <link rel="icon" href="data:,">
+  <link rel="preload" href="fonts/newsreader-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <div>
-      <h1>ENTSO-E observatory</h1>
-      <p class="sub">Day-ahead prices and actual load for European bidding zones, with data quality.</p>
-    </div>
+  <header class="top">
+    <h1>ENTSO-E observatory</h1>
     <p class="meta" id="meta"></p>
   </header>
-  <nav id="tabs" role="tablist">
-    <button data-tab="coverage" class="active">Coverage</button>
-    <button data-tab="completeness">Completeness</button>
+  <nav id="tabs">
+    <button data-tab="overview" class="active">Overview</button>
+    <button data-tab="patterns">Patterns</button>
+    <button data-tab="forecast">Forecast</button>
     <button data-tab="explorer">Explorer</button>
     <button data-tab="negative">Negative prices</button>
     <button data-tab="spreads">Spreads</button>
+    <button data-tab="completeness">Completeness</button>
+    <button data-tab="coverage">Coverage</button>
   </nav>
   <main>
-    <section id="coverage"></section>
-    <section id="completeness" hidden></section>
+    <section id="overview"></section>
+    <section id="patterns" hidden></section>
+    <section id="forecast" hidden></section>
     <section id="explorer" hidden></section>
     <section id="negative" hidden></section>
     <section id="spreads" hidden></section>
+    <section id="completeness" hidden></section>
+    <section id="coverage" hidden></section>
   </main>
-  <footer>Data: ENTSO-E Transparency Platform, Open-Meteo, ECB. Prices in EUR/MWh (converted with ECB rates where the publication currency differs).</footer>
+  <footer>Data: ENTSO-E Transparency Platform, Open-Meteo, ECB. Prices in EUR/MWh, converted with ECB rates where the publication currency differs. Code and dataset: <a href="https://github.com/hsilvosa/entsoe-observatory">GitHub</a>, <a href="https://huggingface.co/datasets/hsilvosa/entsoe-observatory">Hugging Face</a>.</footer>
   <div id="tip" class="tip" hidden></div>
+  <script src="overview.js"></script>
+  <script src="insights.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

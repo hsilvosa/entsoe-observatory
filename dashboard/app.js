@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { meta: null, zoneNames: {}, cache: {} };
+const state = { meta: null, zoneNames: {}, cache: {}, map: null, patterns: null };
 const $ = (sel, root = document) => root.querySelector(sel);
 
 function el(tag, attrs = {}, ...children) {
@@ -198,11 +198,11 @@ async function renderExplorer() {
     el("div", { class: "controls" }, select,
       segmented({ all: "All", "5y": "5 years", "2y": "2 years", "1y": "1 year", "90d": "90 days" }, range, (v) => { root.dataset.range = v; renderExplorer(); })),
     el("div", { class: "card" }, el("h3", {}, "Day-ahead price, daily mean with min-max range (EUR/MWh)"), priceBox,
-      legend([["#0f766e", "daily mean"], ["rgba(15,118,110,0.3)", "min to max of the hourly prices"]])),
+      legend([["#d9a441", "daily mean"], ["rgba(217,164,65,0.28)", "min to max of the hourly prices"]])),
     el("div", { class: "card" }, el("h3", {}, "Actual load, daily mean (MW)"), loadBox),
     el("p", { class: "note" }, `${dates.length} days shown. Days without data are left out and the line is cut at gaps. Hover for values.`));
-  lineChart(priceBox, { dates, series: [{ name: "mean", values: pick(data.price_mean), color: "#0f766e" }], band: { min: pick(data.price_min), max: pick(data.price_max) }, unit: " EUR" });
-  lineChart(loadBox, { dates, series: [{ name: "load", values: pick(data.load_mean), color: "#b45309" }], unit: " MW" });
+  lineChart(priceBox, { dates, series: [{ name: "mean", values: pick(data.price_mean), color: "#d9a441" }], band: { min: pick(data.price_min), max: pick(data.price_max) }, unit: " EUR" });
+  lineChart(loadBox, { dates, series: [{ name: "load", values: pick(data.load_mean), color: "#6fb7d1" }], unit: " MW" });
 }
 
 // ---------- Negative prices ----------
@@ -227,7 +227,7 @@ async function renderNegative() {
   const values = zones[sel] || [];
   const w = 1000, h = 160, bw = (w - 60) / years.length;
   const top = Math.max(1, ...values);
-  const bars = values.map((v, i) => `<rect x="${50 + i * bw + 3}" y="${h - 22 - (v / top) * (h - 40)}" width="${bw - 6}" height="${(v / top) * (h - 40)}" fill="#b45309"><title>${years[i]}: ${v} h</title></rect><text x="${50 + i * bw + bw / 2}" y="${h - 6}" font-size="11" text-anchor="middle" fill="currentColor">${years[i]}</text>`).join("");
+  const bars = values.map((v, i) => `<rect x="${50 + i * bw + 3}" y="${h - 22 - (v / top) * (h - 40)}" width="${bw - 6}" height="${(v / top) * (h - 40)}" fill="#6fb7d1"><title>${years[i]}: ${v} h</title></rect><text x="${50 + i * bw + bw / 2}" y="${h - 6}" font-size="11" text-anchor="middle" fill="currentColor">${years[i]}</text>`).join("");
   trend.innerHTML = `<svg viewBox="0 0 ${w} ${h}">${bars}<text x="46" y="14" font-size="11" text-anchor="end" fill="currentColor">${top}</text></svg>`;
 }
 
@@ -248,16 +248,16 @@ async function renderSpreads() {
   root.replaceChildren(
     el("div", { class: "controls" }, select),
     el("div", { class: "card" }, el("h3", {}, `${current.a} minus ${current.b}: monthly mean spread and mean absolute spread (EUR/MWh)`), box,
-      legend([["#0f766e", "mean spread"], ["#b45309", "mean absolute spread"]])),
+      legend([["#d9a441", "mean spread"], ["#6fb7d1", "mean absolute spread"]])),
     el("div", { class: "card" }, el("h3", {}, "Largest mean absolute spreads, last 12 months"),
       el("table", {}, el("tbody", {}, table.map((r) => el("tr", { style: "cursor:pointer", onclick: () => { root.dataset.pair = key(r.p); renderSpreads(); } },
         el("td", {}, `${r.p.a} - ${r.p.b}`), el("td", { class: "num" }, fmt(r.v)))))) ),
     el("p", { class: "note" }, "Spread is the price of the first zone minus the second, on hours where both zones have all their slots. Neighbouring pairs are listed in configs/neighbours.json."));
-  lineChart(box, { dates: data.months.map((m) => `${m}-01`), series: [{ name: "spread", values: current.mean, color: "#0f766e" }, { name: "abs", values: current.abs_mean, color: "#b45309" }], height: 240, unit: " EUR" });
+  lineChart(box, { dates: data.months.map((m) => `${m}-01`), series: [{ name: "spread", values: current.mean, color: "#d9a441" }, { name: "abs", values: current.abs_mean, color: "#6fb7d1" }], height: 240, unit: " EUR" });
 }
 
 // ---------- Boot ----------
-const renderers = { coverage: renderCoverage, completeness: renderCompleteness, explorer: renderExplorer, negative: renderNegative, spreads: renderSpreads };
+const renderers = { overview: renderOverview, patterns: renderPatterns, forecast: renderForecast, coverage: renderCoverage, completeness: renderCompleteness, explorer: renderExplorer, negative: renderNegative, spreads: renderSpreads };
 
 function activate(name) {
   document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
@@ -270,9 +270,9 @@ function activate(name) {
 async function boot() {
   state.meta = await getJson("data/meta.json");
   state.zoneNames = Object.fromEntries(state.meta.zones.map((z) => [z.key, z.name]));
-  $("#meta").textContent = `Built ${state.meta.generated_at.replace("T", " ")} UTC | data quality run ${state.meta.dq_run_id}`;
+  $("#meta").textContent = `Data built ${state.meta.generated_at.slice(0, 16).replace("T", " ")} UTC`;
   document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => activate(b.dataset.tab)));
-  activate(renderers[location.hash.slice(1)] ? location.hash.slice(1) : "coverage");
+  activate(renderers[location.hash.slice(1)] ? location.hash.slice(1) : "overview");
 }
 
 boot().catch((e) => { document.body.prepend(el("p", { class: "bad", style: "padding:16px" }, `Could not start: ${e.message}`)); });

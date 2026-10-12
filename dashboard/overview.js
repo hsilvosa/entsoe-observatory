@@ -3,14 +3,14 @@
 /* Overview: headline KPIs and the zone map. Loaded before app.js and uses its helpers
    (el, getJson, state, fmt, showTip, hideTip, segmented) at call time. */
 
-const PRICE_STOPS = [[-20, "#35d0ff"], [30, "#2a9fb0"], [70, "#4fae86"], [110, "#c9b038"], [160, "#ff9a1f"], [230, "#ff4d4d"]];
-const LOAD_STOPS = [[0, "#0f2433"], [1500, "#14506b"], [8000, "#1f8fb5"], [25000, "#6fd3f2"], [60000, "#e6f9ff"]];
-const NEG_STOPS = [[0, "#16212d"], [1, "#1b4c63"], [6, "#2a9fb0"], [12, "#35d0ff"], [24, "#e6f9ff"]];
-const COV_STOPS = [[0, "#ff4d4d"], [0.6, "#ff9a1f"], [0.95, "#4fae86"], [1, "#3ddc97"]];
+const PRICE_STOPS = [[-20, "#5fb4cf"], [0, "#2c4452"], [60, "#5f7a68"], [120, "#c2a24a"], [180, "#d9772e"], [240, "#c2412d"]];
+const LOAD_STOPS = [[0, "#1c2832"], [1500, "#2d4a5c"], [8000, "#4f7f98"], [25000, "#8fb8c9"], [60000, "#e4eef2"]];
+const NEG_STOPS = [[0, "#1c2832"], [1, "#2c5266"], [6, "#4f93ad"], [12, "#7ec4dc"], [24, "#e4f3f8"]];
+const COV_STOPS = [[0, "#b5483a"], [0.6, "#c98a3a"], [0.95, "#6f9a76"], [1, "#8fb996"]];
 const METRICS = {
   price: { label: "Price", unit: "EUR/MWh", key: "price", stops: PRICE_STOPS, fmt: (v) => fmt(v, 1), legend: [-20, 30, 70, 110, 160, 230] },
   load: { label: "Load", unit: "MW (daily mean)", key: "load", stops: LOAD_STOPS, fmt: (v) => fmt(v, 0), legend: [0, 1500, 8000, 25000, 60000] },
-  neg: { label: "Negative hours", unit: "hours in the day", key: "neg", stops: NEG_STOPS, fmt: (v) => fmt(v, 0), legend: [0, 1, 6, 12, 24] },
+  neg: { label: "Neg. hours", unit: "hours in the day", key: "neg", stops: NEG_STOPS, fmt: (v) => fmt(v, 0), legend: [0, 1, 6, 12, 24] },
   cov: { label: "Completeness", unit: "share of the day covered by prices", key: "pcov", stops: COV_STOPS, fmt: (v) => `${(v * 100).toFixed(0)}%`, legend: [0, 0.6, 0.95, 1] },
 };
 
@@ -65,15 +65,26 @@ async function renderOverview() {
   ui.index = Math.min(ui.index, dates.length - 1);
 
   const nameOf = (z) => zoneName(z);
-  const strip = el("div", { class: "kpis" },
-    kpi(`Average day-ahead price for ${o.day}`, fmt(o.price_mean, 1), "EUR/MWh",
-      delta(o.price_mean, o.price_week_mean), sparkline(o.price_series.map((p) => p[1]), "#ffb020", 240, 52), "lead"),
-    kpi("Cheapest zone", o.cheapest.zone.replace("_", " "), "", `${fmt(o.cheapest.price, 1)} EUR/MWh`, null, "cool"),
-    kpi("Most expensive zone", o.dearest.zone.replace("_", " "), "", `${fmt(o.dearest.price, 1)} EUR/MWh`, null, "hot"),
-    kpi("Negative-price zones", String(o.negative_zones.length), "", o.negative_zones.length ? o.negative_zones.slice(0, 6).join(", ") + (o.negative_zones.length > 6 ? "..." : "") : "none today"),
-    kpi("Widest spread", o.spread ? fmt(o.spread.value, 0) : "n/a", "EUR/MWh", o.spread ? `${o.spread.a.replace("_", " ")} to ${o.spread.b.replace("_", " ")}` : ""),
-    kpi(`Total load on ${o.load_day || "n/a"}`, o.load_total_mw ? fmt(o.load_total_mw / 1000, 0) : "n/a", "GW", `${o.zones_loaded} zones, daily mean`),
-  );
+  const zn = (z) => z.replace("_", " ");
+  const num = (v, d = 1) => el("span", { class: "n" }, fmt(v, d));
+  const change = o.price_week_mean == null ? null : ((o.price_mean - o.price_week_mean) / Math.abs(o.price_week_mean)) * 100;
+  const lede = el("div", { class: "lede" },
+    el("p", { class: "lede-text" },
+      `On ${new Date(o.day + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}, day-ahead electricity in ${o.zones_priced} European zones averages `, num(o.price_mean), " EUR/MWh",
+      change == null ? "." : `, ${Math.abs(change).toFixed(0)}% ${change >= 0 ? "above" : "below"} the previous seven days.`,
+      ` ${zn(o.cheapest.zone)} is the cheapest at `, num(o.cheapest.price), ` and ${zn(o.dearest.zone)} the dearest at `, num(o.dearest.price), "."),
+    el("div", { class: "lede-spark" }, sparkline(o.price_series.map((p) => p[1]), "#d9a441", 260, 46),
+      el("span", { class: "spark-cap" }, "average price, last 90 days")));
+  const facts = el("dl", { class: "facts" },
+    el("div", {}, el("dt", {}, "Negative-price zones"),
+      el("dd", {}, o.negative_zones.length ? `${o.negative_zones.length} (${o.negative_zones.slice(0, 5).map(zn).join(", ")}${o.negative_zones.length > 5 ? "..." : ""})` : "none")),
+    el("div", {}, el("dt", {}, "Widest hourly spread"),
+      el("dd", {}, o.spread ? [num(o.spread.value, 0), ` EUR/MWh, ${zn(o.spread.a)} to ${zn(o.spread.b)}`] : "n/a")),
+    el("div", {}, el("dt", {}, `Load on ${o.load_day || "n/a"}`),
+      el("dd", {}, o.load_total_mw ? [num(o.load_total_mw / 1000, 0), ` GW across ${o.zones_loaded} zones`] : "n/a")),
+    o.negative_record ? el("div", {}, el("dt", {}, "Most negative-price hours in a day"),
+      el("dd", {}, [num(o.negative_record.hours, 0), ` h, ${zn(o.negative_record.zone)}, ${o.negative_record.day}`])) : "");
+  const strip = el("div", { class: "intro" }, lede, facts);
 
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
@@ -132,7 +143,7 @@ async function renderOverview() {
     const max = Math.max(...items.map(([, v]) => v), 1e-9), min = Math.min(...items.map(([, v]) => v), 0);
     rank.replaceChildren(...items.slice(0, 12).map(([z, v]) => el("div", { class: `rank-row ${z === ui.selected ? "on" : ""}`, onclick: () => { ui.selected = ui.selected === z ? null : z; paint(); } },
       el("span", { class: "rk-zone" }, z.replace("_", " ")),
-      el("span", { class: "rk-bar" }, el("i", { style: `width:${Math.max(2, ((v - Math.min(0, min)) / (max - Math.min(0, min) || 1)) * 100)}%;background:${colorFor(m.stops, v)}` })),
+      el("span", { class: "rk-bar" }, el("i", { style: `width:${Math.max(2, ((v - Math.min(0, min)) / (max - Math.min(0, min) || 1)) * 100)}%;background:#6f7f8f` })),
       el("span", { class: "rk-val" }, m.fmt(v)))));
     paintDetail();
   }
@@ -145,7 +156,7 @@ async function renderOverview() {
     detail.replaceChildren(
       el("div", { class: "zd-head" }, el("strong", {}, nameOf(z)), el("span", { class: "zd-code" }, z),
         el("a", { href: "#explorer", class: "zd-link", onclick: () => { $("#explorer").dataset.zone = z; } }, "Open in explorer")),
-      sparkline(series, "#35d0ff", 360, 70),
+      sparkline(series, "#d9a441", 360, 60),
       el("div", { class: "zd-foot" }, el("span", {}, dates[0]), el("span", {}, dates[dates.length - 1])));
   }
 

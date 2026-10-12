@@ -234,6 +234,6 @@ def test_dashboard_requires_gold(tmp_path: Path) -> None:
     from entsoe_observatory.dashboard import build_dashboard
     from entsoe_observatory.settings import Settings
 
-    settings = Settings(STORAGE_ROOT=tmp_path)  # type: ignore[call-arg]
+    settings = Settings(_env_file=None, STORAGE_ROOT=tmp_path)  # type: ignore[call-arg]
     with pytest.raises(FileNotFoundError):
         build_dashboard(settings, tmp_path / "site")

@@ -22,6 +22,7 @@ from .publish import S3Store, publish_huggingface, publish_r2
 from .reconcile import reconcile as run_reconcile
 from .settings import Settings
 from .silver import build_silver
+from .state import pull_state, push_state
 from .weather import WeatherClient, pull_weather
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
@@ -189,8 +190,13 @@ def publish_r2_command(
     """Sync gold, contracts and the dataset card to Cloudflare R2."""
     settings = Settings()
     started = time.perf_counter()
-    store = None if dry_run else S3Store(settings)
-    summary = publish_r2(settings, store or _DryStore(), dry_run=dry_run, prune=prune)  # type: ignore[arg-type]
+    configured = all(
+        (settings.r2_account_id, settings.r2_bucket, settings.r2_access_key_id,
+         settings.r2_secret_access_key)
+    )
+    # A dry run reads the remote manifest when credentials exist, so the plan is accurate.
+    store = S3Store(settings) if configured else _DryStore()
+    summary = publish_r2(settings, store, dry_run=dry_run, prune=prune)  # type: ignore[arg-type]
     _echo("publish-r2", summary, started)
 
 
@@ -220,3 +226,17 @@ class _DryStore:
 
     def get_text(self, key: str) -> str | None:
         return None
+
+
+@app.command("state-pull")
+def state_pull() -> None:
+    """Restore bronze, silver, landing and dq from R2 (for stateless CI runners)."""
+    started = time.perf_counter()
+    _echo("state-pull", pull_state(Settings(), S3Store(Settings())), started)
+
+
+@app.command("state-push")
+def state_push() -> None:
+    """Upload changed bronze, silver, landing and dq files to R2."""
+    started = time.perf_counter()
+    _echo("state-push", push_state(Settings(), S3Store(Settings())), started)

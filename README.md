@@ -2,13 +2,17 @@
 
 A reproducible, low-cost data platform for European electricity market data. It ingests day-ahead prices and actual total load from the [ENTSO-E Transparency Platform](https://transparency.entsoe.eu) for 51 bidding zones (2015 to today), adds per-zone weather and ECB exchange rates, checks the data with SQL quality rules, and publishes contract-enforced gold tables and a static dashboard. It runs on free tiers: GitHub Actions, Cloudflare R2 and Hugging Face.
 
-The focus is data engineering: lineage, idempotent loads, data contracts and data quality. Forecasting is out of scope. The sibling project [energy-grid](https://github.com/hsilvosa/energy-grid) (local name `energy-predictor`) is the intended consumer of the gold layer.
+The focus is data engineering: lineage, idempotent loads, data contracts and data quality. Forecasting as a product is out of scope: the dashboard has one small, transparent forecast as a demonstration, and the sibling project [energy-grid](https://github.com/hsilvosa/energy-grid) (local name `energy-predictor`) is the intended consumer of the gold layer for real modelling.
 
 - **Dataset:** https://huggingface.co/datasets/hsilvosa/entsoe-observatory
 - **Dashboard:** https://entsoe-observatory.pages.dev
-- **Numbers:** about 14M silver rows (2015-2026), 9 gold tables (about 400 MB of Parquet), 51 zones, 3 scheduled workflows, 81 tests.
+- **Numbers:** about 14M silver rows (2015-2026), 9 gold tables (about 400 MB of Parquet), 51 zones, 3 scheduled workflows, 85 tests.
 
-![Price and load explorer](docs/img/dashboard-explorer.png)
+![Overview: headline figures and the zone map](docs/img/dashboard-overview.png)
+
+The dashboard also has an explorer per zone, negative-price and spread views, patterns (the midday solar dip, weekend and weather effects) and a seven-day forecast.
+
+![Patterns](docs/img/dashboard-patterns.png)
 
 ## What the data taught us
 
@@ -105,6 +109,14 @@ Credentials come from the environment or `.env` (never committed): `ENTSOE_API_T
 ## Cost
 
 Running cost is 0 EUR per year on free tiers, with a hard cap of 20 EUR: GitHub Actions is free for public repositories, R2 gives 10 GB (the state and the dataset use about 1 GB), and Hugging Face hosting is free. The only recurring need is the free ENTSO-E API token.
+
+## The forecast on the dashboard
+
+A seven-day outlook for the daily mean price of each zone with enough history. The level is the average of the last 7 and last 28 days, plus a weekday effect from the last 26 full weeks. Nothing is trained and every forecast uses only data available at its origin; a test checks that changing future values does not change the result. The 10-90% interval comes from the model's own past errors at each horizon.
+
+It is scored on the last 90 days against two baselines, the same day last week and the last 7-day mean, using mean absolute error per horizon, plus how often the real price fell inside the interval. It beats the weekly baseline by 10 to 28% in 39 of the 44 zones. The interval is a little too narrow: it covers a median of 77% of days against a target of 80%, ranging from 52% to 94% by zone. It loses to the baseline (by 5 to 8%) in five of the six Italian zones, where prices barely differ across the country and follow no clear weekly pattern. It has no weather, fuel or outage inputs, so it is a demonstration of what the dataset supports, not a trading signal.
+
+![Seven-day forecast](docs/img/dashboard-forecast.png)
 
 ## Limitations
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from entsoe_observatory.settings import Settings
@@ -88,3 +89,25 @@ def test_interrupted_first_upload_is_resumed_by_size(tmp_path: Path) -> None:
     store.objects["_state/silver/a.parquet"] = b"a"  # uploaded before the crash, no manifest
     assert push_state(runner, store)["uploaded"] == 1
     assert store.puts == ["_state/silver/b.parquet"]
+
+
+def test_scoped_run_keeps_other_datasets_in_the_manifest(tmp_path: Path) -> None:
+    full = settings_for(tmp_path / "full")
+    for ds in ("actual_load", "day_ahead_prices"):
+        path = full.storage_root / f"silver/{ds}/zone=ES/p.parquet"
+        path.parent.mkdir(parents=True)
+        path.write_bytes(ds.encode())
+    store = MemoryStore()
+    push_state(full, store)
+
+    runner = settings_for(tmp_path / "runner")
+    assert pull_state(runner, store, only=["actual_load"]) == {"files": 1, "downloaded": 1}
+    assert not (runner.storage_root / "silver/day_ahead_prices").exists()
+    (runner.storage_root / "silver/actual_load/zone=ES/p.parquet").write_bytes(b"newer")
+    result = push_state(runner, store, only=["actual_load"])
+    assert result == {"files": 1, "uploaded": 1, "dropped": 0}
+    files = json.loads(store.objects[STATE_MANIFEST].decode())["files"]
+    assert set(files) == {
+        "_state/silver/actual_load/zone=ES/p.parquet",
+        "_state/silver/day_ahead_prices/zone=ES/p.parquet",
+    }

@@ -43,9 +43,21 @@ def _remote_manifest(store: StateStore) -> dict[str, Any]:
     return json.loads(raw)["files"] if raw else {}
 
 
-def push_state(settings: Settings, store: StateStore, workers: int = 16) -> dict[str, int]:
-    remote = _remote_manifest(store)
-    local = _local_files(settings)
+ALWAYS = ("live_manifest.jsonl",)
+
+
+def _in_scope(key: str, only: list[str] | None) -> bool:
+    """Scoped runs (for example one dataset) only touch keys that contain a given marker."""
+    return only is None or any(f"/{name}/" in key for name in only) or key.endswith(ALWAYS)
+
+
+def push_state(
+    settings: Settings, store: StateStore, workers: int = 16, only: list[str] | None = None
+) -> dict[str, int]:
+    full_remote = _remote_manifest(store)
+    remote = {k: v for k, v in full_remote.items() if _in_scope(k, only)}
+    outside = {k: v for k, v in full_remote.items() if k not in remote}
+    local = {k: p for k, p in _local_files(settings).items() if _in_scope(k, only)}
     current: dict[str, Any] = {}
     todo: list[str] = []
     for key, path in local.items():
@@ -68,18 +80,22 @@ def push_state(settings: Settings, store: StateStore, workers: int = 16) -> dict
         ))
     uploaded = len(todo)
     # Files that no longer exist locally (replaced partitions) are dropped from the manifest.
-    store.put_text(STATE_MANIFEST, json.dumps({"files": current}), "application/json")
+    store.put_text(
+        STATE_MANIFEST, json.dumps({"files": {**outside, **current}}), "application/json"
+    )
     return {"files": len(current), "uploaded": uploaded, "dropped": len(set(remote) - set(current))}
 
 
-def pull_state(settings: Settings, store: StateStore) -> dict[str, int]:
-    remote = _remote_manifest(store)
-    downloaded = 0
+def pull_state(
+    settings: Settings, store: StateStore, workers: int = 32, only: list[str] | None = None
+) -> dict[str, int]:
+    remote = {k: v for k, v in _remote_manifest(store).items() if _in_scope(k, only)}
+    todo: list[tuple[str, Path]] = []
     for key, info in remote.items():
         target = settings.storage_root / key.removeprefix("_state/")
-        if target.exists() and target.stat().st_size == info["bytes"]:
-            continue
-        target.parent.mkdir(parents=True, exist_ok=True)
-        store.get_file(key, target)
-        downloaded += 1
-    return {"files": len(remote), "downloaded": downloaded}
+        if not (target.exists() and target.stat().st_size == info["bytes"]):
+            target.parent.mkdir(parents=True, exist_ok=True)
+            todo.append((key, target))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        list(pool.map(lambda item: store.get_file(*item), todo))
+    return {"files": len(remote), "downloaded": len(todo)}

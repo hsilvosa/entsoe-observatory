@@ -229,14 +229,14 @@ class _DryStore:
 
 
 @app.command("state-pull")
-def state_pull() -> None:
+def state_pull(dataset: DatasetOption = None) -> None:
     """Restore bronze, silver, landing and dq from R2 (for stateless CI runners)."""
     started = time.perf_counter()
-    _echo("state-pull", pull_state(Settings(), S3Store(Settings())), started)
+    _echo("state-pull", pull_state(Settings(), S3Store(Settings()), only=dataset), started)
 
 
 @app.command("state-push")
-def state_push() -> None:
+def state_push(dataset: DatasetOption = None) -> None:
     """Upload changed bronze, silver, landing and dq files to R2."""
     started = time.perf_counter()
-    _echo("state-push", push_state(Settings(), S3Store(Settings())), started)
+    _echo("state-push", push_state(Settings(), S3Store(Settings()), only=dataset), started)

@@ -22,6 +22,9 @@ class MemoryStore:
     def put_text(self, key: str, text: str, content_type: str) -> None:
         self.objects[key] = text.encode("utf-8")
 
+    def list_sizes(self, prefix: str) -> dict[str, int]:
+        return {k: len(v) for k, v in self.objects.items() if k.startswith(prefix)}
+
     def get_file(self, key: str, path: Path) -> None:
         path.write_bytes(self.objects[key])
 
@@ -73,3 +76,15 @@ def test_changed_and_removed_files(tmp_path: Path) -> None:
     result = push_state(runner, store)
     assert store.puts == ["_state/bronze/a.parquet"]
     assert result == {"files": 1, "uploaded": 1, "dropped": 1}
+
+
+def test_interrupted_first_upload_is_resumed_by_size(tmp_path: Path) -> None:
+    runner = settings_for(tmp_path)
+    for name in ("a", "b"):
+        path = runner.storage_root / f"silver/{name}.parquet"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(name.encode())
+    store = MemoryStore()
+    store.objects["_state/silver/a.parquet"] = b"a"  # uploaded before the crash, no manifest
+    assert push_state(runner, store)["uploaded"] == 1
+    assert store.puts == ["_state/silver/b.parquet"]

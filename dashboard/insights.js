@@ -198,7 +198,7 @@ async function renderForecast() {
         legend([[INK.accent, "actual"], [INK.cool, `forecast with ${f.interval[0]}-${f.interval[1]}% interval`]])),
       el("p", { class: "note" }, `Forecast made from data up to ${z.origin}. Over the last 90 days of backtest the interval held the real price ${(z.coverage * 100).toFixed(0)}% of the time (the target is ${f.interval[1] - f.interval[0]}%), and the model's average error over the week is ${gain(H).toFixed(0)}% ${gain(H) >= 0 ? "lower" : "higher"} than repeating last week's price.`),
       el("h3", { class: "side-title" }, "Backtest, last 90 days: mean absolute error in EUR/MWh"),
-      el("table", {}, el("thead", {}, el("tr", {}, ["Horizon", "Model", "Last 7-day mean", "Same day last week", "Model vs same day"].map((t, i) => el("th", { class: i ? "num" : "" }, t)))), el("tbody", {}, rows)),
+      el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ["Horizon", "Model", "Last 7-day mean", "Same day last week", "Model vs same day"].map((t, i) => el("th", { class: i ? "num" : "" }, t)))), el("tbody", {}, rows))),
       el("h3", { class: "side-title", style: "margin-top:22px" }, "Improvement over repeating last week's price, by zone (average over the 7 horizons)"),
       el("div", { class: "two" }, rankRows(skill.slice(0, 10), { selected: zone, onPick: (k) => { root.dataset.zone = k; renderForecast(); }, format: (v) => `${v.toFixed(0)}%`, max: 100, good: true }),
         rankRows(skill.slice(-10), { selected: zone, onPick: (k) => { root.dataset.zone = k; renderForecast(); }, format: (v) => `${v.toFixed(0)}%`, max: 100, good: true })),

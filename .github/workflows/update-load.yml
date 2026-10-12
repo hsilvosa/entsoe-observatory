@@ -31,8 +31,14 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --extra publish
       - run: uv run entsoe-observatory state-pull --dataset actual_load
-      - run: uv run entsoe-observatory pull --dataset actual_load --lookback-days 2
+      - id: pull
+        continue-on-error: true
+        run: uv run entsoe-observatory pull --dataset actual_load --lookback-days 2
       - run: uv run entsoe-observatory state-push --dataset actual_load
+      - if: steps.pull.outcome == 'failure'
+        run: |
+          echo "pull reported errors; see the pull step"
+          exit 1
       - if: failure()
         uses: ./.github/actions/alert
         with:

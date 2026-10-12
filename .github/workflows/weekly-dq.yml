@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync
+      - run: uv sync --extra publish
       - run: uv run entsoe-observatory state-pull
       - run: uv run entsoe-observatory dq
       - run: uv run entsoe-observatory gold

@@ -54,7 +54,10 @@ def build_dashboard(
         shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True)
     for asset in APP_DIR.iterdir():
-        shutil.copy(asset, out_dir / asset.name)
+        if asset.is_dir():
+            shutil.copytree(asset, out_dir / asset.name)
+        else:
+            shutil.copy(asset, out_dir / asset.name)
     data = out_dir / "data"
     sizes: dict[str, int] = {}
 
@@ -157,6 +160,8 @@ def build_dashboard(
                 "pairs": [{"a": a, "b": b, **vals} for (a, b), vals in pairs.items()],
             },
         )
+    sizes["overview"] = _write(data / "overview.json", _overview(con))
+    sizes["map"] = _write(data / "map.json", _map_series(con))
     return {
         "out_dir": str(out_dir),
         "files": len(sizes),
@@ -164,3 +169,118 @@ def build_dashboard(
         "data_kb": round(sum(sizes.values()) / 1024),
         "dq_run_id": dq_run,
     }
+
+
+MAP_DAYS = 365
+MIN_ZONES_FOR_HEADLINE = 25
+
+
+def _overview(con: duckdb.DuckDBPyConnection) -> dict[str, Any]:
+    """Headline numbers for the newest local day that most zones have prices for."""
+    row = con.execute(
+        "SELECT max(local_date) FROM (SELECT local_date FROM zone_daily"
+        " WHERE price_coverage >= 0.95 GROUP BY 1 HAVING count(*) >= ?)",
+        [MIN_ZONES_FOR_HEADLINE],
+    ).fetchone()
+    if not row or row[0] is None:
+        return {"day": None}
+    day = row[0]
+    cursor = con.execute(
+        "SELECT zone_key, price_eur_mean, price_eur_min, price_eur_max, negative_price_hours,"
+        " load_mw_mean, price_coverage, load_coverage FROM zone_daily WHERE local_date = ?"
+        " ORDER BY zone_key",
+        [day],
+    )
+    cols = [d[0] for d in cursor.description]
+    today = [dict(zip(cols, r, strict=True)) for r in cursor.fetchall()]
+    priced = [z for z in today if z["price_eur_mean"] is not None and z["price_coverage"] >= 0.95]
+    load_day_row = con.execute(
+        "SELECT max(local_date) FROM (SELECT local_date FROM zone_daily"
+        " WHERE load_coverage >= 0.95 GROUP BY 1 HAVING count(*) >= ?)",
+        [MIN_ZONES_FOR_HEADLINE],
+    ).fetchone()
+    load_day = load_day_row[0] if load_day_row else None
+    loaded = []
+    if load_day is not None:
+        loaded = [
+            {"zone_key": k, "load_mw_mean": v}
+            for k, v in con.execute(
+                "SELECT zone_key, load_mw_mean FROM zone_daily"
+                " WHERE local_date = ? AND load_coverage >= 0.95 AND load_mw_mean IS NOT NULL",
+                [load_day],
+            ).fetchall()
+        ]
+
+    def mean_by_day(days: int) -> list[tuple[Any, float]]:
+        return con.execute(
+            "SELECT local_date, avg(price_eur_mean) FROM zone_daily"
+            " WHERE price_coverage >= 0.95 AND local_date > ? - ? AND local_date <= ?"
+            " GROUP BY 1 HAVING count(*) >= ? ORDER BY 1",
+            [day, days, day, MIN_ZONES_FOR_HEADLINE],
+        ).fetchall()
+
+    series = mean_by_day(90)
+    previous = [v for d, v in series if (day - d).days in range(1, 8)]
+    mean_today = sum(z["price_eur_mean"] for z in priced) / len(priced)
+    weekly = sum(previous) / len(previous) if previous else None
+    cheapest = min(priced, key=lambda z: z["price_eur_mean"])
+    dearest = max(priced, key=lambda z: z["price_eur_mean"])
+    negative = [z for z in today if (z["negative_price_hours"] or 0) > 0]
+    spread = con.execute(
+        "SELECT zone_a, zone_b, max(abs_spread_eur), arg_max(hour_utc, abs_spread_eur)"
+        " FROM cross_zone_spread_hourly WHERE CAST(timezone('Europe/Brussels', hour_utc) AS DATE)"
+        " = ? GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 1",
+        [day],
+    ).fetchone()
+    record = con.execute(
+        "SELECT zone_key, CAST(local_date AS VARCHAR), negative_price_hours FROM zone_daily"
+        " ORDER BY negative_price_hours DESC NULLS LAST LIMIT 1"
+    ).fetchone()
+    return {
+        "day": str(day),
+        "zones_priced": len(priced),
+        "price_mean": round(mean_today, 2),
+        "price_week_mean": None if weekly is None else round(weekly, 2),
+        "price_series": [[str(d), round(v, 2)] for d, v in series],
+        "cheapest": {"zone": cheapest["zone_key"], "price": round(cheapest["price_eur_mean"], 2)},
+        "dearest": {"zone": dearest["zone_key"], "price": round(dearest["price_eur_mean"], 2)},
+        "negative_zones": [z["zone_key"] for z in negative],
+        "negative_hours_total": sum(z["negative_price_hours"] or 0 for z in negative),
+        "load_day": None if load_day is None else str(load_day),
+        "load_total_mw": round(sum(z["load_mw_mean"] for z in loaded)) if loaded else None,
+        "zones_loaded": len(loaded),
+        "spread": None if not spread else {
+            "a": spread[0], "b": spread[1], "value": round(float(spread[2]), 1),
+            "hour": str(spread[3]),
+        },
+        "negative_record": None if not record else {
+            "zone": record[0], "day": record[1], "hours": record[2]},
+    }
+
+
+def _map_series(con: duckdb.DuckDBPyConnection) -> dict[str, Any]:
+    """Daily values per zone for the last year, as aligned arrays for the map slider."""
+    last = con.execute("SELECT max(local_date) FROM zone_daily").fetchone()
+    assert last is not None
+    rows = con.execute(
+        "SELECT zone_key, CAST(local_date AS VARCHAR), price_eur_mean, load_mw_mean,"
+        " negative_price_hours, least(1.0, coalesce(price_coverage, 0)),"
+        " least(1.0, coalesce(load_coverage, 0)) FROM zone_daily"
+        " WHERE local_date > ? - ? ORDER BY 1, 2",
+        [last[0], MAP_DAYS],
+    ).fetchall()
+    dates = sorted({r[1] for r in rows})
+    index = {d: i for i, d in enumerate(dates)}
+    zones: dict[str, dict[str, list[Any]]] = {}
+    for zone, day, price, load, neg, pcov, lcov in rows:
+        entry = zones.setdefault(zone, {
+            "price": [None] * len(dates), "load": [None] * len(dates),
+            "neg": [None] * len(dates), "pcov": [None] * len(dates),
+            "lcov": [None] * len(dates)})
+        i = index[day]
+        entry["price"][i] = None if price is None else round(float(price), 1)
+        entry["load"][i] = None if load is None else round(float(load))
+        entry["neg"][i] = neg
+        entry["pcov"][i] = round(float(pcov), 2)
+        entry["lcov"][i] = round(float(lcov), 2)
+    return {"dates": dates, "zones": zones}

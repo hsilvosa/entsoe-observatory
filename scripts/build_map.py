@@ -89,7 +89,8 @@ def main(countries_file: str, admin1_file: str) -> None:
             zones[key] = unary_union([by_iso[i] for i in isos])
     ireland = by_iso["IRL"]
     north = [shape(f["geometry"]) for f in admin1
-             if f["properties"]["adm0_a3"] == "GBR" and f["properties"]["name"] == "Northern Ireland"]
+             if f["properties"]["adm0_a3"] == "GBR"
+             and f["properties"]["name"] == "Northern Ireland"]
     zones["IE_SEM"] = unary_union([ireland, *north])
     for key, (iso, names) in REGIONS.items():
         parts = [shape(f["geometry"]) for f in admin1
@@ -98,7 +99,8 @@ def main(countries_file: str, admin1_file: str) -> None:
         zones[key] = unary_union(parts)
     for key, regions in ITALY.items():
         parts = [shape(f["geometry"]) for f in admin1
-                 if f["properties"]["adm0_a3"] == "ITA" and f["properties"].get("region") in regions]
+                 if f["properties"]["adm0_a3"] == "ITA"
+                 and f["properties"].get("region") in regions]
         assert parts, key
         zones[key] = unary_union(parts)
     out: dict[str, dict[str, object]] = {}

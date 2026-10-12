@@ -8,6 +8,7 @@ state: it is rebuilt from silver and published separately.
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -23,6 +24,7 @@ class StateStore(Protocol):
     def put_file(self, key: str, path: Path, content_type: str) -> None: ...
     def put_text(self, key: str, text: str, content_type: str) -> None: ...
     def get_file(self, key: str, path: Path) -> None: ...
+    def list_sizes(self, prefix: str) -> dict[str, int]: ...
 
 
 def _local_files(settings: Settings) -> dict[str, Path]:
@@ -41,11 +43,11 @@ def _remote_manifest(store: StateStore) -> dict[str, Any]:
     return json.loads(raw)["files"] if raw else {}
 
 
-def push_state(settings: Settings, store: StateStore) -> dict[str, int]:
+def push_state(settings: Settings, store: StateStore, workers: int = 16) -> dict[str, int]:
     remote = _remote_manifest(store)
     local = _local_files(settings)
-    uploaded = 0
     current: dict[str, Any] = {}
+    todo: list[str] = []
     for key, path in local.items():
         size = path.stat().st_size
         known = remote.get(key)
@@ -53,11 +55,18 @@ def push_state(settings: Settings, store: StateStore) -> dict[str, int]:
             current[key] = known
             continue
         digest = sha256_file(path)
-        entry = {"sha256": digest, "bytes": size, "mtime": path.stat().st_mtime_ns}
+        current[key] = {"sha256": digest, "bytes": size, "mtime": path.stat().st_mtime_ns}
         if not known or known["sha256"] != digest:
-            store.put_file(key, path, "application/octet-stream")
-            uploaded += 1
-        current[key] = entry
+            todo.append(key)
+    if todo and not remote:
+        # An interrupted first upload leaves objects without a manifest: skip equal sizes.
+        present = store.list_sizes("_state/")
+        todo = [k for k in todo if present.get(k) != current[k]["bytes"]]
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        list(pool.map(
+            lambda k: store.put_file(k, local[k], "application/octet-stream"), todo
+        ))
+    uploaded = len(todo)
     # Files that no longer exist locally (replaced partitions) are dropped from the manifest.
     store.put_text(STATE_MANIFEST, json.dumps({"files": current}), "application/json")
     return {"files": len(current), "uploaded": uploaded, "dropped": len(set(remote) - set(current))}

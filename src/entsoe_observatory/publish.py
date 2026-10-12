@@ -153,6 +153,15 @@ class S3Store:
             Bucket=self.bucket, Key=key, Body=text.encode("utf-8"), ContentType=content_type
         )
 
+    def list_sizes(self, prefix: str) -> dict[str, int]:
+        sizes: dict[str, int] = {}
+        for page in self._client.get_paginator("list_objects_v2").paginate(
+            Bucket=self.bucket, Prefix=prefix
+        ):
+            for obj in page.get("Contents", []):
+                sizes[obj["Key"]] = obj["Size"]
+        return sizes
+
     def get_file(self, key: str, path: Path) -> None:
         self._client.download_file(self.bucket, key, str(path))
 

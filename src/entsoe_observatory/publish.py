@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -95,9 +96,12 @@ def publish_r2(
     }
     if dry_run:
         return summary
-    for key in plan.upload:
+    def upload(key: str) -> None:
         path = local[key][0]
         store.put_file(key, path, CONTENT_TYPES.get(path.suffix, "application/octet-stream"))
+
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        list(pool.map(upload, plan.upload))
     if plan.delete:
         store.delete(plan.delete)
     kept = {k: v for k, v in remote.items() if k not in plan.delete}

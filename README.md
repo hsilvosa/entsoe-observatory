@@ -2,7 +2,7 @@
 
 Reproducible, low-cost data platform for European electricity market data from the ENTSO-E Transparency Platform: day-ahead prices and actual total load for all configured bidding zones, 2015 to today.
 
-Status: Phase 3 (gold, contracts, dashboard and publication). The README grows with each phase.
+Status: Phase 4 (scheduled orchestration). The README grows with each phase.
 
 ## Layers
 
@@ -30,6 +30,7 @@ Besides prices and load, the platform ingests per-zone weather (Open-Meteo) and 
 | `gold` | Build the gold tables and enforce their contracts (`--table` for one). |
 | `dashboard` | Static dashboard into `STORAGE_ROOT/site`. |
 | `card`, `publish-r2`, `publish-hf` | Dataset card; sync to Cloudflare R2; upload to Hugging Face (`--dry-run` first). |
+| `state-pull`, `state-push` | Restore or save pipeline state in R2 (used by the scheduled workflows). |
 | `reconcile` | Compare silver with a legacy parquet snapshot. |
 | `contracts` | Print the JSON schema of the event contract v2 (`schemas/grid-event-v2.json`). |
 

@@ -153,6 +153,9 @@ class S3Store:
             Bucket=self.bucket, Key=key, Body=text.encode("utf-8"), ContentType=content_type
         )
 
+    def get_file(self, key: str, path: Path) -> None:
+        self._client.download_file(self.bucket, key, str(path))
+
     def delete(self, keys: list[str]) -> None:
         for start in range(0, len(keys), 1000):
             batch = [{"Key": k} for k in keys[start : start + 1000]]

@@ -97,7 +97,7 @@ def test_dry_run_changes_nothing(scenario: Pipeline) -> None:  # noqa: F811
 def test_secrets_never_reach_manifests(scenario: Pipeline) -> None:  # noqa: F811
     secret = "very-secret-value-123"
     settings = Settings(  # type: ignore[call-arg]
-        STORAGE_ROOT=scenario.settings.storage_root, R2_SECRET_ACCESS_KEY=secret,
+        _env_file=None, STORAGE_ROOT=scenario.settings.storage_root, R2_SECRET_ACCESS_KEY=secret,
         R2_ACCESS_KEY_ID="key-id-456", HF_TOKEN="hf-token-789",
     )
     store = MemoryStore()
@@ -110,7 +110,9 @@ def test_secrets_never_reach_manifests(scenario: Pipeline) -> None:  # noqa: F81
 
 
 def test_s3_store_needs_complete_settings(tmp_path: Path) -> None:
-    settings = Settings(STORAGE_ROOT=tmp_path, R2_BUCKET="b")  # type: ignore[call-arg]
+    settings = Settings(  # type: ignore[call-arg]
+        _env_file=None, STORAGE_ROOT=tmp_path, R2_BUCKET="b"
+    )
     with pytest.raises(ValueError, match="R2_ACCOUNT_ID"):
         S3Store(settings)
 

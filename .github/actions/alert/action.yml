@@ -1,0 +1,26 @@
+name: Open or update failure issue
+description: Opens one issue per failing workflow and comments on it while it stays open.
+inputs:
+  title:
+    description: Issue title
+    required: true
+  token:
+    description: GitHub token with issues write permission
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        TITLE: ${{ inputs.title }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        existing=$(gh issue list --state open --label pipeline-failure --search "in:title $TITLE" --json number --jq '.[0].number // empty')
+        body="Workflow run failed: $RUN_URL"
+        if [ -n "$existing" ]; then
+          gh issue comment "$existing" --body "$body"
+        else
+          gh label create pipeline-failure --color B60205 --description "Scheduled pipeline run failed" 2>/dev/null || true
+          gh issue create --title "$TITLE" --label pipeline-failure --body "$body"
+        fi

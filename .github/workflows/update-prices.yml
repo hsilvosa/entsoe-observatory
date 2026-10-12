@@ -1,0 +1,51 @@
+name: Update prices (daily)
+
+on:
+  schedule:
+    - cron: "25 11,13 * * *"
+  workflow_dispatch:
+
+# One writer at a time for the whole pipeline: runs queue instead of overlapping.
+concurrency:
+  group: pipeline-writer
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      STORAGE_ROOT: ${{ github.workspace }}/storage
+      ENTSOE_API_TOKEN: ${{ secrets.ENTSOE_API_TOKEN }}
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      THREADS: "2"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - run: uv run entsoe-observatory state-pull
+      - run: uv run entsoe-observatory pull --dataset day_ahead_prices --lookback-days 3
+      - run: uv run entsoe-observatory fx
+      - run: uv run entsoe-observatory weather
+      - run: uv run entsoe-observatory dq
+      - run: uv run entsoe-observatory gold
+      - run: uv run entsoe-observatory publish-r2
+      - run: uv run entsoe-observatory dashboard
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashboard
+          path: storage/site
+          retention-days: 7
+      - run: uv run entsoe-observatory state-push
+      - if: failure()
+        uses: ./.github/actions/alert
+        with:
+          title: "Pipeline failed: daily price update"
+          token: ${{ github.token }}

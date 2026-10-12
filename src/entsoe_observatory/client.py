@@ -25,7 +25,9 @@ from .parser import LOAD, PRICES, local_name
 from .zones import Zone
 
 ENTSOE_ENDPOINT = "https://web-api.tp.entsoe.eu/api"
-RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+# 599 is not a standard code; the ENTSO-E gateway returned it for a failed pull (NO_2) and a
+# retry is the right answer to it, as for the other transient gateway errors.
+RETRYABLE_STATUS = {408, 429, 500, 502, 503, 504, 599}
 
 # httpx logs full request URLs (including the query string) at INFO level.
 logging.getLogger("httpx").setLevel(logging.WARNING)

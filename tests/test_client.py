@@ -82,6 +82,18 @@ def test_retries_transient_errors_with_retry_after() -> None:
     assert sleeps[0] == 7.0
 
 
+def test_gateway_status_599_is_retried() -> None:
+    calls = {"n": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        return httpx.Response(599) if calls["n"] == 1 else httpx.Response(200, text=DATA)
+
+    client = make_client(httpx.MockTransport(handler), [])
+    assert client.fetch("actual_load", ES, START, END).status == "data"
+    assert calls["n"] == 2
+
+
 def test_no_data_acknowledgement_is_not_an_error() -> None:
     client = make_client(httpx.MockTransport(lambda r: httpx.Response(200, text=ACK_NO_DATA)))
     assert client.fetch("day_ahead_prices", ES, START, END).status == "no_data"

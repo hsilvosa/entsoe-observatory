@@ -31,7 +31,11 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --extra publish
       - run: uv run entsoe-observatory state-pull
-      - run: uv run entsoe-observatory pull --dataset day_ahead_prices --lookback-days 3
+      # A failed pull must not discard the rest of the run: keep going, push the state, and fail
+      # the job at the end so the alert still fires.
+      - id: pull
+        continue-on-error: true
+        run: uv run entsoe-observatory pull --dataset day_ahead_prices --lookback-days 3
       - run: uv run entsoe-observatory fx
       - run: uv run entsoe-observatory weather
       - run: uv run entsoe-observatory dq
@@ -49,6 +53,10 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4 pages deploy storage/site --project-name entsoe-observatory --branch main
       - run: uv run entsoe-observatory state-push
+      - if: steps.pull.outcome == 'failure'
+        run: |
+          echo "pull reported errors; see the pull step"
+          exit 1
       - if: failure()
         uses: ./.github/actions/alert
         with:

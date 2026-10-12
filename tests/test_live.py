@@ -8,7 +8,7 @@ from pathlib import Path
 import duckdb
 from xmlgen import DocSpec, PeriodSpec, SeriesSpec, render
 
-from entsoe_observatory.client import FetchResult
+from entsoe_observatory.client import EntsoeApiError, FetchResult
 from entsoe_observatory.live import plan_window, pull_live
 from entsoe_observatory.settings import Settings
 from entsoe_observatory.silver import silver_as_of
@@ -109,6 +109,41 @@ def test_newer_revision_wins_and_cutoff_restores_old_view(tmp_path: Path) -> Non
     after = silver_as_of(settings, "day_ahead_prices", es, NOW)
     assert {r["value"] for r in before} == {40.0}
     assert {r["value"] for r in after} == {55.0}
+
+
+class FlakyFetcher(FakeFetcher):
+    """Fails the first call per zone with an API error, then behaves normally."""
+
+    def __init__(self, failures: int = 1) -> None:
+        super().__init__()
+        self.failures = failures
+        self.seen: dict[str, int] = {}
+
+    def fetch(self, dataset: str, zone: Zone, start: datetime, end: datetime) -> FetchResult:
+        self.seen[zone.key] = self.seen.get(zone.key, 0) + 1
+        if self.seen[zone.key] <= self.failures:
+            raise EntsoeApiError("ENTSO-E request failed (HTTP 599)")
+        return super().fetch(dataset, zone, start, end)
+
+
+def test_failed_pulls_are_retried_once_after_a_pause(tmp_path: Path) -> None:
+    settings = settings_for(tmp_path)
+    fetcher = FlakyFetcher(failures=1)
+    fetcher.set_price_doc("ES", 50.0, 1, "2026-03-10T10:00:00Z")
+    summary = pull_live(settings, fetcher, datasets=["day_ahead_prices"], zones=["ES"], now=NOW,
+                        retry_pause=0)
+    assert summary["errors"] == 0
+    assert summary["rows"] > 0
+    assert fetcher.seen["ES"] == 2
+
+
+def test_pulls_that_keep_failing_are_reported(tmp_path: Path) -> None:
+    settings = settings_for(tmp_path)
+    fetcher = FlakyFetcher(failures=5)
+    summary = pull_live(settings, fetcher, datasets=["day_ahead_prices"], zones=["ES"], now=NOW,
+                        retry_pause=0)
+    assert summary["errors"] == 1
+    assert fetcher.seen["ES"] == 2
 
 
 def test_inactive_zone_is_skipped(tmp_path: Path) -> None:

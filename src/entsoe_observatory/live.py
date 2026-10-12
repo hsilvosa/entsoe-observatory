@@ -14,6 +14,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
+from time import sleep
 from typing import Any, Protocol
 
 import duckdb
@@ -186,6 +187,7 @@ def pull_live(
     now: datetime | None = None,
     registry_path: Path | None = None,
     on_progress: Callable[[str], None] | None = None,
+    retry_pause: float = 60.0,
 ) -> dict[str, Any]:
     run_id = run_id or new_run_id()
     now = (now or datetime.now(UTC)).astimezone(UTC)
@@ -193,6 +195,7 @@ def pull_live(
     selected = [registry[k] for k in (zones or sorted(registry))]
     con = _connect(settings.threads)
     results: list[dict[str, Any]] = []
+    work: list[tuple[str, Zone, Window]] = []
     for dataset in datasets or list(DATASETS):
         for zone in selected:
             window = plan_window(
@@ -205,10 +208,23 @@ def pull_live(
             if not _is_active(zone, window, now):
                 continue
             for chunk in chunk_window(window):
+                work.append((dataset, zone, chunk))
                 entry = _pull_chunk(
                     settings, fetcher, con, run_id, dataset, zone, chunk, now, on_progress
                 )
                 results.append(entry)
+    # The API has short outages. One more pass over the failures, after a pause, usually
+    # clears them; whatever still fails is reported as an error.
+    failed = [i for i, r in enumerate(results) if r["status"] == "error"]
+    if failed:
+        if on_progress:
+            on_progress(f"retrying {len(failed)} failed pull(s) after {retry_pause:.0f}s")
+        sleep(retry_pause)
+        for i in failed:
+            dataset, zone, chunk = work[i]
+            results[i] = _pull_chunk(
+                settings, fetcher, con, run_id, dataset, zone, chunk, now, on_progress
+            )
     summary = {
         "lookback_days": lookback_days,
         "pulls": results,

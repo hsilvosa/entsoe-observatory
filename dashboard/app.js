@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { meta: null, zoneNames: {}, cache: {}, map: null };
+const state = { meta: null, zoneNames: {}, cache: {}, map: null, patterns: null };
 const $ = (sel, root = document) => root.querySelector(sel);
 
 function el(tag, attrs = {}, ...children) {
@@ -257,7 +257,7 @@ async function renderSpreads() {
 }
 
 // ---------- Boot ----------
-const renderers = { overview: renderOverview, coverage: renderCoverage, completeness: renderCompleteness, explorer: renderExplorer, negative: renderNegative, spreads: renderSpreads };
+const renderers = { overview: renderOverview, patterns: renderPatterns, forecast: renderForecast, coverage: renderCoverage, completeness: renderCompleteness, explorer: renderExplorer, negative: renderNegative, spreads: renderSpreads };
 
 function activate(name) {
   document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));

@@ -16,6 +16,8 @@
   </header>
   <nav id="tabs">
     <button data-tab="overview" class="active">Overview</button>
+    <button data-tab="patterns">Patterns</button>
+    <button data-tab="forecast">Forecast</button>
     <button data-tab="explorer">Explorer</button>
     <button data-tab="negative">Negative prices</button>
     <button data-tab="spreads">Spreads</button>
@@ -24,6 +26,8 @@
   </nav>
   <main>
     <section id="overview"></section>
+    <section id="patterns" hidden></section>
+    <section id="forecast" hidden></section>
     <section id="explorer" hidden></section>
     <section id="negative" hidden></section>
     <section id="spreads" hidden></section>
@@ -33,6 +37,7 @@
   <footer>Data: ENTSO-E Transparency Platform, Open-Meteo, ECB. Prices in EUR/MWh, converted with ECB rates where the publication currency differs. Code and dataset: <a href="https://github.com/hsilvosa/entsoe-observatory">GitHub</a>, <a href="https://huggingface.co/datasets/hsilvosa/entsoe-observatory">Hugging Face</a>.</footer>
   <div id="tip" class="tip" hidden></div>
   <script src="overview.js"></script>
+  <script src="insights.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -60,7 +60,7 @@ async function renderOverview() {
   if (!o.day) { root.replaceChildren(el("p", { class: "note" }, "No overview data yet.")); return; }
   const dates = mapData.dates;
   const headline = Math.max(0, dates.indexOf(o.day));
-  const ui = state.map || (state.map = { metric: "price", index: headline, playing: false, timer: null, selected: null });
+  const ui = state.map || (state.map = { metric: "price", index: headline, playing: false, speed: 1, timer: null, selected: null });
   if (ui.timer) { clearInterval(ui.timer); ui.timer = null; ui.playing = false; }
   ui.index = Math.min(ui.index, dates.length - 1);
 
@@ -113,6 +113,7 @@ async function renderOverview() {
   const dateLabel = el("span", { class: "date-label" });
   const slider = el("input", { type: "range", min: 0, max: dates.length - 1, value: ui.index, "aria-label": "Date" });
   const play = el("button", { class: "icon-btn", "aria-label": "Play", onclick: () => toggle() }, "Play");
+  const speedBtn = el("button", { class: "icon-btn", "aria-label": "Playback speed", onclick: () => { ui.speed = ui.speed === 1 ? 2 : 1; speedBtn.textContent = `x${ui.speed}`; if (ui.playing) { toggle(); toggle(); } } }, `x${ui.speed}`);
   const detail = el("div", { class: "zone-detail" });
 
   function toggle() {
@@ -121,7 +122,7 @@ async function renderOverview() {
     if (ui.timer) { clearInterval(ui.timer); ui.timer = null; }
     if (ui.playing) {
       if (ui.index >= dates.length - 1) ui.index = 0;
-      ui.timer = setInterval(() => { ui.index = Math.min(dates.length - 1, ui.index + 1); slider.value = ui.index; paint(); if (ui.index >= dates.length - 1) toggle(); }, 90);
+      ui.timer = setInterval(() => { ui.index = Math.min(dates.length - 1, ui.index + 1); slider.value = ui.index; paint(); if (ui.index >= dates.length - 1) toggle(); }, 90 / ui.speed);
     }
   }
   slider.addEventListener("input", () => { ui.index = Number(slider.value); paint(); });
@@ -143,7 +144,7 @@ async function renderOverview() {
     const max = Math.max(...items.map(([, v]) => v), 1e-9), min = Math.min(...items.map(([, v]) => v), 0);
     rank.replaceChildren(...items.slice(0, 12).map(([z, v]) => el("div", { class: `rank-row ${z === ui.selected ? "on" : ""}`, onclick: () => { ui.selected = ui.selected === z ? null : z; paint(); } },
       el("span", { class: "rk-zone" }, z.replace("_", " ")),
-      el("span", { class: "rk-bar" }, el("i", { style: `width:${Math.max(2, ((v - Math.min(0, min)) / (max - Math.min(0, min) || 1)) * 100)}%;background:#6f7f8f` })),
+      el("span", { class: "rk-bar" }, el("i", { style: `width:${Math.max(2, ((v - Math.min(0, min)) / (max - Math.min(0, min) || 1)) * 100)}%;background:${colorFor(m.stops, v)}` })),
       el("span", { class: "rk-val" }, m.fmt(v)))));
     paintDetail();
   }
@@ -166,7 +167,7 @@ async function renderOverview() {
     strip,
     el("div", { class: "stage" },
       el("div", { class: "map-card" }, svg,
-        el("div", { class: "map-controls" }, play, slider, dateLabel)),
+        el("div", { class: "map-controls" }, play, speedBtn, slider, dateLabel)),
       el("aside", { class: "side" },
         el("div", { class: "side-head" }, metricBox),
         legend,

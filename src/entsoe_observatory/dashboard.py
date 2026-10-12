@@ -14,6 +14,7 @@ from typing import Any
 
 import duckdb
 
+from .insights import build_forecast, build_patterns
 from .settings import Settings
 from .zones import load_registry
 
@@ -43,6 +44,7 @@ def build_dashboard(
     con.execute("SET TimeZone='UTC'")
     for table in (
         "zone_daily", "cross_zone_spread_hourly", "dq_scorecard", "dq_scorecard_summary",
+        "price_hourly", "weather_hourly",
     ):
         if (gold / table).exists():
             glob = (gold / table / "**" / "*.parquet").as_posix()
@@ -162,6 +164,8 @@ def build_dashboard(
         )
     sizes["overview"] = _write(data / "overview.json", _overview(con))
     sizes["map"] = _write(data / "map.json", _map_series(con))
+    sizes["patterns"] = _write(data / "patterns.json", build_patterns(con))
+    sizes["forecast"] = _write(data / "forecast.json", build_forecast(con))
     return {
         "out_dir": str(out_dir),
         "files": len(sizes),

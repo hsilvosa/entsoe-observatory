@@ -30,9 +30,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --extra publish
-      - run: uv run entsoe-observatory state-pull
+      - run: uv run entsoe-observatory state-pull --dataset actual_load
       - run: uv run entsoe-observatory pull --dataset actual_load --lookback-days 2
-      - run: uv run entsoe-observatory state-push
+      - run: uv run entsoe-observatory state-push --dataset actual_load
       - if: failure()
         uses: ./.github/actions/alert
         with:

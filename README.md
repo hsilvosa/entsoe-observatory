@@ -5,6 +5,7 @@ A reproducible, low-cost data platform for European electricity market data. It 
 The focus is data engineering: lineage, idempotent loads, data contracts and data quality. Forecasting is out of scope. The sibling project [energy-grid](https://github.com/hsilvosa/energy-grid) (local name `energy-predictor`) is the intended consumer of the gold layer.
 
 - **Dataset:** https://huggingface.co/datasets/hsilvosa/entsoe-observatory
+- **Dashboard:** https://entsoe-observatory.pages.dev
 - **Numbers:** about 14M silver rows (2015-2026), 9 gold tables (about 400 MB of Parquet), 51 zones, 3 scheduled workflows, 81 tests.
 
 ![Price and load explorer](docs/img/dashboard-explorer.png)
@@ -111,7 +112,7 @@ Running cost is 0 EUR per year on free tiers, with a hard cap of 20 EUR: GitHub 
 - The sequence choice for AT and DE_LU is an inference from the data and the EPEX launch date, not an ENTSO-E statement.
 - Weather is a population-weighted mean over a few points per zone. The free Open-Meteo tier stops large backfills, so the history for some zones loads over several days.
 - The neighbour list for spreads is maintained by hand (`configs/neighbours.json`).
-- The dashboard is built on every daily run but not deployed anywhere yet.
+- The dashboard on Cloudflare Pages is deployed by hand for now; the daily workflow builds it as an artifact but does not publish it.
 - The earlier Hugging Face dataset `hsilvosa/entsoe-day-ahead` has the A03 gap described above; this project does not touch it.
 
 ## Attribution and licensing

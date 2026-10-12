@@ -112,7 +112,7 @@ Running cost is 0 EUR per year on free tiers, with a hard cap of 20 EUR: GitHub 
 - The sequence choice for AT and DE_LU is an inference from the data and the EPEX launch date, not an ENTSO-E statement.
 - Weather is a population-weighted mean over a few points per zone. The free Open-Meteo tier stops large backfills, so the history for some zones loads over several days.
 - The neighbour list for spreads is maintained by hand (`configs/neighbours.json`).
-- The dashboard on Cloudflare Pages is deployed by hand for now; the daily workflow builds it as an artifact but does not publish it.
+- The dashboard on Cloudflare Pages is redeployed by the daily workflow; a failed deploy raises the usual issue.
 - The earlier Hugging Face dataset `hsilvosa/entsoe-day-ahead` has the A03 gap described above; this project does not touch it.
 
 ## Attribution and licensing
